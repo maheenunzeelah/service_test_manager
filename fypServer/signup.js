@@ -7,16 +7,27 @@ const Teacher=require("./models/Teachers");
 router.post("/", (req, res) => {
 
     var data = req.body; 
-    var teacher= new Teacher(data);
-    teacher.save()
-
-        .then((resolve) => {
-
-            console.log("Resolve: ", resolve);
-
-            var token=jwt.sign({teacherid:Teacher._id},"shhhh");
-            res.send(token);
-
+     Teacher.findOne({email:data.email})
+        .then(teacher=>{
+          if(teacher){
+              return res.status(400).json({email:'Email alreday exists'});
+          }
+          else{
+              const teacher = new Teacher(data);
+              bcrypt.genSalt(10,(err,salt)=>{
+                  bcrypt.hash(teacher.password,salt,(err,hash)=>{
+                      if(err) throw err;
+                      teacher.password=hash;
+                      teacher.save()
+                       .then(teacher=>{
+                        var token=jwt.sign({teacherid:teacher._id},"shhhh");
+                        console.log(token);
+                        res.send(token);
+                       })
+                  })
+              })
+          }
+          
         })
 
         .catch((err) => {

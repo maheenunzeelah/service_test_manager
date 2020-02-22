@@ -6,7 +6,7 @@
 
 module.exports = function(schema) {
   const unshift = true;
-  schema.pre('save', false, function(next, options) {
+  schema.pre('save', false, function validateBeforeSave(next, options) {
     const _this = this;
     // Nested docs have their own presave
     if (this.ownerDocument) {
@@ -34,6 +34,7 @@ module.exports = function(schema) {
         null;
       this.validate(validateOptions, function(error) {
         return _this.schema.s.hooks.execPost('save:error', _this, [ _this], { error: error }, function(error) {
+          _this.$op = 'save';
           next(error);
         });
       });

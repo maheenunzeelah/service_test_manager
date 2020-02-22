@@ -1,6 +1,7 @@
 'use strict';
 
 const MongooseError = require('../../error/index');
+const SkipPopulateValue = require('./SkipPopulateValue');
 const get = require('../get');
 const getDiscriminatorByValue = require('../discriminator/getDiscriminatorByValue');
 const isPathExcluded = require('../projection/isPathExcluded');
@@ -33,6 +34,10 @@ module.exports = function getModelsMapForPopulate(model, docs, options) {
   let isVirtual = false;
   const modelSchema = model.schema;
 
+  let allSchemaTypes = getSchemaTypes(modelSchema, null, options.path);
+  allSchemaTypes = Array.isArray(allSchemaTypes) ? allSchemaTypes : [allSchemaTypes].filter(v => v != null);
+  const _firstWithRefPath = allSchemaTypes.find(schematype => get(schematype, 'options.refPath', null) != null);
+
   for (i = 0; i < len; i++) {
     doc = docs[i];
 
@@ -44,16 +49,24 @@ module.exports = function getModelsMapForPopulate(model, docs, options) {
     }
 
     modelNames = null;
-    let isRefPath = false;
+    let isRefPath = !!_firstWithRefPath;
+    let normalizedRefPath = _firstWithRefPath ? get(_firstWithRefPath, 'options.refPath', null) : null;
+
     if (Array.isArray(schema)) {
       for (let j = 0; j < schema.length; ++j) {
         let _modelNames;
+        let res;
         try {
-          const res = _getModelNames(doc, schema[j]);
+          res = _getModelNames(doc, schema[j]);
           _modelNames = res.modelNames;
-          isRefPath = res.isRefPath;
+          isRefPath = isRefPath || res.isRefPath;
+          normalizedRefPath = normalizedRefPath || res.refPath;
         } catch (error) {
           return error;
+        }
+
+        if (isRefPath && !res.isRefPath) {
+          continue;
         }
         if (!_modelNames) {
           continue;
@@ -70,6 +83,7 @@ module.exports = function getModelsMapForPopulate(model, docs, options) {
         const res = _getModelNames(doc, schema);
         modelNames = res.modelNames;
         isRefPath = res.isRefPath;
+        normalizedRefPath = res.refPath;
       } catch (error) {
         return error;
       }
@@ -93,6 +107,16 @@ module.exports = function getModelsMapForPopulate(model, docs, options) {
         localField = virtualPrefix + virtual.options.localField;
       }
       count = virtual.options.count;
+
+      if (virtual.options.skip != null && !options.hasOwnProperty('skip')) {
+        options.skip = virtual.options.skip;
+      }
+      if (virtual.options.limit != null && !options.hasOwnProperty('limit')) {
+        options.limit = virtual.options.limit;
+      }
+      if (virtual.options.perDocumentLimit != null && !options.hasOwnProperty('perDocumentLimit')) {
+        options.perDocumentLimit = virtual.options.perDocumentLimit;
+      }
     } else {
       localField = options.path;
     }
@@ -177,11 +201,48 @@ module.exports = function getModelsMapForPopulate(model, docs, options) {
 
     let match = get(options, 'match', null) ||
       get(currentOptions, 'match', null) ||
+      get(options, 'virtual.options.match', null) ||
       get(options, 'virtual.options.options.match', null);
 
     const hasMatchFunction = typeof match === 'function';
     if (hasMatchFunction) {
       match = match.call(doc, doc);
+    }
+
+    // Re: gh-8452. Embedded discriminators may not have `refPath`, so clear
+    // out embedded discriminator docs that don't have a `refPath` on the
+    // populated path.
+    if (isRefPath && normalizedRefPath != null) {
+      const pieces = normalizedRefPath.split('.');
+      let cur = '';
+      for (let i = 0; i < pieces.length; ++i) {
+        cur = cur + (cur.length === 0 ? '' : '.') + pieces[i];
+        const schematype = modelSchema.path(cur);
+        if (schematype != null &&
+            schematype.$isMongooseArray &&
+            schematype.caster.discriminators != null &&
+            Object.keys(schematype.caster.discriminators).length > 0) {
+          const subdocs = utils.getValue(cur, doc);
+          const remnant = options.path.substr(cur.length + 1);
+          const discriminatorKey = schematype.caster.schema.options.discriminatorKey;
+          modelNames = [];
+          for (const subdoc of subdocs) {
+            const discriminatorValue = utils.getValue(discriminatorKey, subdoc);
+            const discriminatorSchema = schematype.caster.discriminators[discriminatorValue].schema;
+            if (discriminatorSchema == null) {
+              continue;
+            }
+            const _path = discriminatorSchema.path(remnant);
+            if (_path == null || _path.options.refPath == null) {
+              const docValue = utils.getValue(localField.substr(cur.length + 1), subdoc);
+              ret = ret.map(v => v === docValue ? SkipPopulateValue(v) : v);
+              continue;
+            }
+            const modelName = utils.getValue(pieces.slice(i + 1).join('.'), subdoc);
+            modelNames.push(modelName);
+          }
+        }
+      }
     }
 
     let k = modelNames.length;
@@ -205,11 +266,12 @@ module.exports = function getModelsMapForPopulate(model, docs, options) {
 
       let ids = ret;
       const flat = Array.isArray(ret) ? utils.array.flatten(ret) : [];
+
       if (isRefPath && Array.isArray(ret) && flat.length === modelNames.length) {
         ids = flat.filter((val, i) => modelNames[i] === modelName);
       }
 
-      if (!available[modelName]) {
+      if (!available[modelName] || currentOptions.perDocumentLimit != null) {
         currentOptions = {
           model: Model
         };
@@ -326,6 +388,7 @@ module.exports = function getModelsMapForPopulate(model, docs, options) {
 
       let ref;
       let refPath;
+
       if ((ref = get(schemaForCurrentDoc, 'options.ref')) != null) {
         ref = handleRefFunction(ref, doc);
         modelNames = [ref];
@@ -356,14 +419,14 @@ module.exports = function getModelsMapForPopulate(model, docs, options) {
     }
 
     if (!modelNames) {
-      return { modelNames: modelNames, isRefPath: isRefPath };
+      return { modelNames: modelNames, isRefPath: isRefPath, refPath: normalizedRefPath };
     }
 
     if (!Array.isArray(modelNames)) {
       modelNames = [modelNames];
     }
 
-    return { modelNames: modelNames, isRefPath: isRefPath };
+    return { modelNames: modelNames, isRefPath: isRefPath, refPath: normalizedRefPath };
   }
 
   return map;

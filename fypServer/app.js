@@ -10,7 +10,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 
 app.use(bodyParser.json());
 
-mongoose.connect(config.url, { useNewUrlParser: true },{useUnifiedTopology: true});
+mongoose.connect(config.url, { useNewUrlParser: true });
 
 const db = mongoose.connection;
 
