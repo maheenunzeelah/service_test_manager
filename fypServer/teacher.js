@@ -4,9 +4,10 @@ var jwt = require('jsonwebtoken');
 const Tests=require("./models/Tests");
 
 router.post('/',(req,res)=>{
-    var token=req.headers['authorization'];
+    var token =req.headers.authorization
     console.log(token);
     var testName=req.body.testName;
+    var data=req.body;
    console.log(testName);
     try{
         var decoded=jwt.verify(token,'shhhh');
@@ -16,7 +17,7 @@ router.post('/',(req,res)=>{
             if(test)
             return res.status(400).json({test:'Test Name alreday exists'});
             else{
-            const test= new Tests(testName);
+            const test= new Tests(data);
             test.save()
              .then(resolve=>{
                  console.log(resolve);
