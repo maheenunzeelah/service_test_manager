@@ -1,0 +1,3 @@
+[submodule "fypclient"]
+	path = fypclient
+	url = https://github.com/maheenunzeelah/service_test_manager.git fypclient
