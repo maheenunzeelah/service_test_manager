@@ -2,6 +2,7 @@ const express=require("express");
 const router=express.Router();
 var jwt = require('jsonwebtoken');
 const Tests=require("./models/Tests");
+const Questions=require("./models/Question");
 
 router.post('/',(req,res)=>{
     var token =req.headers.authorization
@@ -33,5 +34,58 @@ router.post('/',(req,res)=>{
         console.log(err)
      res.status(401).send(err)
     }
+})
+
+router.post('/addQues',(req,res)=>{
+    var token =req.headers.authorization
+    console.log(token);
+    var question=req.body.question;
+    var data=req.body;
+   console.log(question);
+    try{
+        var decoded=jwt.verify(token,'shhhh');
+        console.log(decoded);
+        Questions.findOne({question})
+        .then(question=>{
+            if(question)
+            return res.status(400).json({test:'Question alreday exists'});
+            else{
+            const question= new Questions(data);
+            question.save()
+             .then(resolve=>{
+                 console.log(resolve);
+                 res.send('Question saved');
+             })
+             .catch((err)=>{
+                 res.send('Something went wrong')
+             })
+            }
+        })
+    }
+    catch(err){
+        console.log(err)
+     res.status(401).send(err)
+    }
+})
+router.get('/tests',(req,res)=>{
+    var token=req.headers['authorization'];
+    try {
+        var decoded = jwt.verify(token, 'shhhh');
+        Tests.find((error,response)=>{
+           if(error){
+               res.status(500);
+               res.send(error);
+               return
+           }
+        console.log(response);
+       res.send(response);
+        })
+       
+      } 
+    catch(err) {
+        res.status(401).send(err);
+      }
+    
+    
 })
 module.exports=router;
