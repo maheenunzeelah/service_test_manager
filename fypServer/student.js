@@ -1,38 +1,68 @@
 const express=require('express');
 const router=express.Router();
 // var jwt=require('jsonwebtoken');
-
+var ffmpeg=require('ffmpeg')
 var amqp = require('amqplib/callback_api');
-router.post('/',(req,res)=>{
-     var mssg=req.body;
-     mssg=mssg.toString();
-     console.log(mssg)
-    amqp.connect('amqp://localhost', function(error0, connection) {
-        console.log("runningg")
-    if (error0) {
-        throw error0;
-    }
-    connection.createChannel(function(error1, channel) {
-        if (error1) {
-            throw error1;
-        }
+const multer = require('multer');
 
-        var queue = 'hello';
-        
+var upload = multer({ dest: __dirname + '/public/uploads/' });
 
-        channel.assertQueue(queue, {
-            durable: false
-        });
-        channel.sendToQueue(queue, Buffer.from(mssg));
-
-        console.log(" [x] Sent %s", mssg);
-    });
-    setTimeout(function() {
-        connection.close();
+router.post('/',upload.single('data'),(req,res)=>{
+    // try{
+    //     var mssg=req.file;
         
+    //      console.log(mssg)
+         
+    //     var process=new ffmpeg(mssg);
+    //     process.then(function (audio){
+    //         audio.fnExtractSoundToMP3(__dirname+'/file.mp3',function(error,file){
+    //             if(!error)
+    //             console.log('Audio file'+file);
+                
+    //         });
+    //     },function(err){
+    //         console.log('Error :'+ err);
+    //     })
         
-    }, 500);
+    // }
+    // catch(e){
+    //     console.log(e.code);
+    //     console.log(e.msg);}
     
-});
+    const file = req.file
+    console.log(file)
+      res.send(file)
+
+    
+//      var mssg=req.body;
+     
+//      console.log(mssg)
+//     amqp.connect('amqp://localhost', function(error0, connection) {
+//         console.log("runningg")
+//     if (error0) {
+//         throw error0;
+//     }
+//     connection.createChannel(function(error1, channel) {
+//         if (error1) {
+//             throw error1;
+//         }
+
+//         var queue = 'hello';
+        
+
+//         channel.assertQueue(queue, {
+//             durable: false
+//         });
+//         channel.sendToQueue(queue, Buffer.from(mssg));
+
+//         console.log(" [x] Sent %s", mssg);
+//     });
+//     setTimeout(function() {
+//         connection.close();
+        
+        
+//     }, 500);
+    
+// });
 })
 module.exports=router;
