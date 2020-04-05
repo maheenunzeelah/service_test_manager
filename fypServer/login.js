@@ -2,10 +2,12 @@ const express=require("express");
 const router=express.Router();
 var jwt = require('jsonwebtoken');
 const Teacher=require("./models/Teachers");
+const studentModule=require("./student")
 const bcrypt=require('bcryptjs');
 const teacherModule=require('./teacher')
 
 router.use('/teacher',teacherModule);
+router.use('/student', studentModule);
 router.post("/",(req,res)=>{
    const email=req.body.email;
    const password=req.body.password;
