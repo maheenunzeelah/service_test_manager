@@ -3,7 +3,8 @@ const router = express.Router();
 var jwt = require('jsonwebtoken');
 const Tests = require("./models/Tests");
 const Questions = require("./models/Question");
-const Validator = require('validator')
+const Validator = require('validator');
+var moment = require('moment');
 
 
 //TEST CREATEION API 
@@ -59,6 +60,7 @@ router.post('/addQues', (req, res) => {
     var token = req.headers.authorization
     var question = req.body.question;
     var data = req.body;
+    console.log(data)
     try {
         var decoded = jwt.verify(token, 'shhhh');
         console.log(decoded);
@@ -71,6 +73,11 @@ router.post('/addQues', (req, res) => {
                         res.send("Enter Question")
                     }
                     else {
+                        let d = new Date();
+                        d= d.toISOString().replace('Z', ' ').replace('T', '  ');
+                        
+                        data={...data,created_at:d}
+                        console.log(data)
                         const question = new Questions(data);
                         question.save()
                             .then(resolve => {

@@ -16,34 +16,34 @@ router.post('/',upload.single('data'),(req,res)=>{
    
       res.send(file)
 
-    amqp.connect('amqp://localhost', function(error0, connection) {
-        console.log("runningg")
-    if (error0) {
-        throw error0;
-    }
-    connection.createChannel(function(error1, channel) {
-        if (error1) {
-            throw error1;
-        }
+//     amqp.connect('amqp://localhost', function(error0, connection) {
+//         console.log("runningg")
+//     if (error0) {
+//         throw error0;
+//     }
+//     connection.createChannel(function(error1, channel) {
+//         if (error1) {
+//             throw error1;
+//         }
 
-        var queue = 'hello';
+//         var queue = 'hello';
         
 
-        channel.assertQueue(queue, {
+//         channel.assertQueue(queue, {
 
-            durable: false
-        });
-        channel.sendToQueue(queue, Buffer.from(JSON.stringify(file)));
+//             durable: false
+//         });
+//         channel.sendToQueue(queue, Buffer.from(JSON.stringify(file)));
 
-        console.log(" [x] Sent %s", file);
-    });
-    setTimeout(function() {
-        connection.close();
+//         console.log(" [x] Sent %s", file);
+//     });
+//     setTimeout(function() {
+//         connection.close();
         
         
-    }, 500);
+//     }, 500);
     
-});
+// });
 })
 // try{
       

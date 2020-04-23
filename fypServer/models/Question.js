@@ -5,11 +5,11 @@ const quesSchema = new mongoose.Schema({
 question:String,
 answer:String,
 corr:[String],
-answer1:String,
-answer2:String,
-answer3:String,
+answers:[{}],
 type:String,
-test:{ type: Schema.Types.ObjectId, ref: 'Tests' }
+test:{ type: Schema.Types.ObjectId, ref: 'Tests' },
+created_at: {type: Date, default: Date.now},
+updated_at: {type: Date, default: Date.now}
 });
     
 var Questions= mongoose.model("Questions", quesSchema);
