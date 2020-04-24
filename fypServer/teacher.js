@@ -7,6 +7,23 @@ const Validator = require('validator');
 var moment = require('moment');
 
 
+
+
+function formatAMPM(date) {
+    let month = (date.getMonth() + 1).toString();
+    let dat = (date.getDate()).toString();
+    let year = (date.getFullYear()).toString();
+    let hour = (date.getHours()).toString();
+    var hours = date.getHours();
+    var minutes = date.getMinutes();
+    var ampm = hours >= 12 ? 'pm' : 'am';
+    hours = hours % 12;
+    hours = hours ? hours : 12; // the hour '0' should be '12'
+    minutes = minutes < 10 ? '0' + minutes : minutes;
+    var strTime = month + '/' + dat + '/' + year + '  ' + hours + ':' + minutes + ' ' + ampm;
+    return strTime;
+}
+
 //TEST CREATEION API 
 router.post('/', (req, res) => {
     //Token received from axios header
@@ -73,10 +90,10 @@ router.post('/addQues', (req, res) => {
                         res.send("Enter Question")
                     }
                     else {
-                        let d = new Date();
-                        d= d.toISOString().replace('Z', ' ').replace('T', '  ');
-                        
-                        data={...data,created_at:d}
+
+                        d = formatAMPM(new Date);
+
+                        data = { ...data, created_at: d }
                         console.log(data)
                         const question = new Questions(data);
                         question.save()
@@ -95,6 +112,23 @@ router.post('/addQues', (req, res) => {
         console.log(err)
         res.status(401).send(err)
     }
+})
+
+router.delete('/delQues/:id',(req,res)=>{
+    var token = req.headers['authorization'];
+    var id = req.params.id;
+    console.log(id)
+    try {
+        var decoded = jwt.verify(token, 'shhhh');
+        Questions.remove({ _id: id })
+            .then(resolve => {
+                console.log("Delete Succesfully: ", resolve);
+                res.send("Question Deleted");
+            });
+    }
+    catch (err) {
+        res.status(401).send(err);
+    }  
 })
 
 //GET API FOR SENDING TEST DATA TO CLIENT
@@ -177,7 +211,7 @@ router.delete('/deleteTest/:id', (req, res) => {
                 res.send("Test Deleted");
             });
     }
-    catch(err){
+    catch (err) {
         res.status(401).send(err);
     }
 })
