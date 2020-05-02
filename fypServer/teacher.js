@@ -72,64 +72,7 @@ router.post('/', (req, res) => {
     }
 })
 
-// ADDING QUESTIONS IN CREATED TEST API
-router.post('/addQues', (req, res) => {
-    var token = req.headers.authorization
-    var question = req.body.question;
-    var data = req.body;
-    console.log(data)
-    try {
-        var decoded = jwt.verify(token, 'shhhh');
-        console.log(decoded);
-        Questions.findOne({ question })
-            .then(quest => {
-                if (quest)
-                    return res.status(400).json({ ques: 'Question alreday exists' });
-                else {
-                    if (question == undefined) {
-                        res.send("Enter Question")
-                    }
-                    else {
 
-                        d = formatAMPM(new Date);
-
-                        data = { ...data, created_at: d }
-                        console.log(data)
-                        const question = new Questions(data);
-                        question.save()
-                            .then(resolve => {
-                                console.log(resolve);
-                                res.send('Question saved');
-                            })
-                            .catch((err) => {
-                                res.send('Something went wrong')
-                            })
-                    }
-                }
-            })
-    }
-    catch (err) {
-        console.log(err)
-        res.status(401).send(err)
-    }
-})
-
-router.delete('/delQues/:id',(req,res)=>{
-    var token = req.headers['authorization'];
-    var id = req.params.id;
-    console.log(id)
-    try {
-        var decoded = jwt.verify(token, 'shhhh');
-        Questions.remove({ _id: id })
-            .then(resolve => {
-                console.log("Delete Succesfully: ", resolve);
-                res.send("Question Deleted");
-            });
-    }
-    catch (err) {
-        res.status(401).send(err);
-    }  
-})
 
 //GET API FOR SENDING TEST DATA TO CLIENT
 router.get('/tests', (req, res) => {
@@ -176,7 +119,7 @@ router.put('/updateTest/:id', (req, res) => {
                     console.log(cond)
                 })
                 if (cond)
-                    return res.status(400).json({ test: 'Test Name alreday exists' });
+                    return res.status(400).json({ test: 'Test Name already exists' });
                 //IF TEST NAME DOES NOT EXIST THEN CHANGE NAME    
                 else {
                     Tests.updateOne({ _id: id }, data, (error, response) => {
@@ -215,19 +158,17 @@ router.delete('/deleteTest/:id', (req, res) => {
         res.status(401).send(err);
     }
 })
+
+// FOR QUESTIONS
 //GET API FOR SENDING QUESTIONS DATA TO CLIENT
 router.get('/readQues', (req, res) => {
     var token = req.headers['authorization'];
     try {
         var decoded = jwt.verify(token, 'shhhh');
-        Questions.find((error, response) => {
-            if (error) {
-                res.status(500);
-                res.send(error);
-                return
-            }
-            console.log(response);
-            res.send(response);
+        Questions.find().populate("test").exec(function(err,ques){
+            if(err) return handleError(err);
+            console.log(ques[0].test.testName);
+            res.send(ques);
         })
 
     }
@@ -235,6 +176,109 @@ router.get('/readQues', (req, res) => {
         res.status(401).send(err);
     }
 
+
+})
+
+// ADDING QUESTIONS IN CREATED TEST API
+router.post('/addQues', (req, res) => {
+    var token = req.headers.authorization
+    var question = req.body.question;
+    var data = req.body;
+    console.log(data)
+    try {
+        var decoded = jwt.verify(token, 'shhhh');
+        console.log(decoded);
+        Questions.findOne({ question })
+            .then(quest => {
+                if (quest)
+                    return res.status(400).json({ ques: 'Question already exists' });
+                else {
+                    if (question == undefined) {
+                        res.send("Enter Question")
+                    }
+                    else {
+
+                        d = formatAMPM(new Date);
+
+                        data = { ...data, created_at: d }
+                        console.log(data)
+                        const question = new Questions(data);
+                        question.save()
+                            .then(resolve => {
+                                console.log(resolve);
+                                res.send('Question saved');
+                            })
+                            .catch((err) => {
+                                res.send('Something went wrong')
+                            })
+                    }
+                }
+            })
+    }
+    catch (err) {
+        console.log(err)
+        res.status(401).send(err)
+    }
+})
+
+// DELETING QUESTIONS FROM CREATED TEST API
+router.delete('/delQues/:id',(req,res)=>{
+    var token = req.headers['authorization'];
+    var id = req.params.id;
+    console.log(id)
+    try {
+        var decoded = jwt.verify(token, 'shhhh');
+        Questions.remove({ _id: id })
+            .then(resolve => {
+                console.log("Delete Succesfully: ", resolve);
+                res.send("Question Deleted");
+            });
+    }
+    catch (err) {
+        res.status(401).send(err);
+    }  
+})
+//UPDATE QUESTION CREATED
+router.put('/updateQues/:id', (req, res) => {
+    var id = req.params.id;
+    var data = req.body;
+    console.log(id, data)
+    var token = req.headers['authorization'];
+    try {
+        var decoded = jwt.verify(token, 'shhhh');
+        var test= data.test;
+        var query = { question: data.question };
+        //CHECK IF UPDATED TEST NAME ALREADY EXISTS
+        Questions.find(query)
+            .then(ques => {
+                console.log(ques)
+                var cond
+                ques.map(qu => {
+
+                    cond = qu.test == test
+                    console.log(cond)
+                })
+                if (cond)
+                    return res.status(400).json({ question: 'Question already exists' });
+                //IF QUESTION NAME DOES NOT EXIST THEN CHANGE NAME    
+                else {
+                    Questions.updateOne({ _id: id }, data, (error, response) => {
+                        if (error) {
+                            console.log("Err: ", error);
+                            res.send(error);
+                            return;
+                        }
+                        console.log(response)
+                        res.send("Question Updated");
+
+                    })
+                }
+            }
+            )
+    }
+    catch (err) {
+        res.status(401).send(err);
+    }
 
 })
 module.exports = router;
