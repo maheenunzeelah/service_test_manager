@@ -177,6 +177,7 @@ router.get('/readQues/:page', (req, res) => {
             res.send({
                 ques,
                 currentPage:page,
+                ques_per_page:Quest_Per_Page,
                 hasNextPage:page*Quest_Per_Page<totalQuestions,
                 nextPage:page+1,
                 previousPage:page-1,
