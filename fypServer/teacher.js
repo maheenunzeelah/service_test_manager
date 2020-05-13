@@ -160,16 +160,17 @@ router.delete('/deleteTest/:id', (req, res) => {
 })
 
 // FOR QUESTIONS
-const Quest_Per_Page=10;
+const Quest_Per_Page=5;
 //GET API FOR SENDING QUESTIONS DATA TO CLIENT
 router.get('/readQues/:page', (req, res) => {
     var token = req.headers['authorization'];
-    const page= +req.params.page;
+    const page= +req.params.page ||1;
     let totalQuestions;
     try {
         var decoded = jwt.verify(token, 'shhhh');
         Questions.find().countDocuments().then(numQues=>{
          totalQuestions=numQues;
+         console.log(totalQuestions)
          return Questions.find().populate("test").skip((page-1)*Quest_Per_Page).limit(Quest_Per_Page)  
          .exec(function(err,ques){
             if(err) return handleError(err);
@@ -180,7 +181,7 @@ router.get('/readQues/:page', (req, res) => {
                 nextPage:page+1,
                 previousPage:page-1,
                 hasPreviousPage:page>1,
-                lastPage:Math.ceil(Quest_Per_Page/totalQuestions)
+                lastPage:Math.ceil(totalQuestions/Quest_Per_Page)
             });
         })
         })
