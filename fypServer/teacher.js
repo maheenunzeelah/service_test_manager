@@ -165,17 +165,31 @@ const Quest_Per_Page=5;
 router.get('/readQues/:page', (req, res) => {
     var token = req.headers['authorization'];
     const page= +req.params.page ||1;
+    const skip=(page-1)*Quest_Per_Page
+    const limit=Quest_Per_Page
     let totalQuestions;
     try {
         var decoded = jwt.verify(token, 'shhhh');
         Questions.find().countDocuments().then(numQues=>{
          totalQuestions=numQues;
          console.log(totalQuestions)
-         return Questions.find().populate("test").skip((page-1)*Quest_Per_Page).limit(Quest_Per_Page)  
+         return Questions.find().populate({
+             path:'test',
+             model:'Tests',
+             match:{}
+         })
          .exec(function(err,ques){
+            
+            ques = ques.filter(function(ques) {
+                
+                return ques.test; // return only questions with test matching 'testName: "test1"' query
+              })
+              
+              console.log(ques.length)
+              totalQuestions=ques.length
             if(err) return handleError(err);
             res.send({
-                ques,
+                ques:ques.slice(skip,limit+skip),
                 currentPage:page,
                 ques_per_page:Quest_Per_Page,
                 hasNextPage:page*Quest_Per_Page<totalQuestions,
