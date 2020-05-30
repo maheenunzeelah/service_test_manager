@@ -150,29 +150,36 @@ exports.getQuestionsController = (req, res) => {
     var token = req.headers['authorization'];
     const page = +req.params.page || 1;
     const course=req.query.course;
-    let match={}
-    course.length>0?match={course}:match={}
-    const skip = (page - 1) * Quest_Per_Page
-    const limit = Quest_Per_Page
+    const type=req.query.type;
+    const search=req.query.search;
+    let match={};
+    let query={};
+   
+    course.length>0 ?match={course}:match={};
+    type.length>0?query={type}:query={};
+    const skip = (page - 1) * Quest_Per_Page;
+    const limit = Quest_Per_Page;
     let totalQuestions;
     try {
         var decoded = jwt.verify(token, 'shhhh');
         Questions.find().countDocuments().then(numQues => {
             totalQuestions = numQues;
             console.log(totalQuestions)
-            return Questions.find().populate({
+            return Questions.find(query).populate({
                 path: 'test',
                 model: 'Tests',
-                match: {testName:'test1',course:'DWM'}
+                match: match
             })
                 .exec(function (err, ques) {
 
                     ques = ques.filter(function (ques) {
 
                         return ques.test; // return only questions with test matching 'testName: "test1"' query
+                    }).filter(qu=>{
+                        return qu.question.indexOf(search)!=-1
                     })
 
-                    console.log(ques.length)
+                    
                     totalQuestions = ques.length
                     if (err) return handleError(err);
                     res.send({
