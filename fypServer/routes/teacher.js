@@ -9,7 +9,7 @@ const course = require('../controllers/course')
 router.post('/', teacher.postTestController)
 
 //GET API FOR SENDING TEST DATA TO CLIENT
-router.get('/tests', teacher.getTestController)
+router.get('/tests/:page', teacher.getTestController)
 
 //UPDATE TEST CREATED
 router.put('/updateTest/:id', teacher.updateTestController)

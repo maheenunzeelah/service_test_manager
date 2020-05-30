@@ -53,18 +53,33 @@ exports.getTestController = (req, res) => {
     var token = req.headers['authorization'];
     try {
         var decoded = jwt.verify(token, 'shhhh');
+        const course=req.query.course;
         var query = { teacher: decoded.teacherid };
-        Tests.find(query, (error, response) => {
-            if (error) {
-                res.status(500);
-                res.send(error);
-                return
-            }
-            console.log(response);
-            res.send(response);
+        course.length>0?query={...query,course}:query={...query}
+        const page = +req.params.page || 1;
+        const Test_Per_Page=5;
+        let totalTests;
+        Tests.find(query).countDocuments().then(numTest=>{
+            totalTests=numTest
+        return Tests.find(query)
+        .skip((page-1)*Test_Per_Page)
+        .limit(Test_Per_Page)
+        .then(test=>{
+            res.send({
+                test,
+                currentPage: page,
+                ques_per_page: Test_Per_Page,
+                hasNextPage: page * Test_Per_Page < totalTests,
+                nextPage: page + 1,
+                previousPage: page - 1,
+                hasPreviousPage: page > 1,
+                lastPage: Math.ceil(totalTests / Test_Per_Page)
+            })
         })
 
-    }
+
+    })
+}
     catch (err) {
         res.status(401).send(err);
     }
@@ -130,7 +145,7 @@ exports.deleteTestController = (req, res) => {
     }
 }
 
-const Quest_Per_Page = 5;
+
 function formatAMPM(date) {
     let month = (date.getMonth() + 1).toString();
     let dat = (date.getDate()).toString();
@@ -147,11 +162,14 @@ function formatAMPM(date) {
 }
 
 exports.getQuestionsController = (req, res) => {
+   
     var token = req.headers['authorization'];
     const page = +req.params.page || 1;
+    const Quest_Per_Page = 5;
     const course=req.query.course;
     const type=req.query.type;
     const search=req.query.search;
+  
     let match={};
     let query={};
    
@@ -162,10 +180,12 @@ exports.getQuestionsController = (req, res) => {
     let totalQuestions;
     try {
         var decoded = jwt.verify(token, 'shhhh');
+        match = {...match, teacher: decoded.teacherid }
+        console.log(match)
         Questions.find().countDocuments().then(numQues => {
             totalQuestions = numQues;
             console.log(totalQuestions)
-            return Questions.find(query).populate({
+            return Questions.find().populate({
                 path: 'test',
                 model: 'Tests',
                 match: match
