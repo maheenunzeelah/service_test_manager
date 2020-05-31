@@ -1,50 +1,9 @@
 const express=require('express');
 const router=express.Router();
 // var jwt=require('jsonwebtoken');
-var ffmpeg=require('ffmpeg')
-var amqp = require('amqplib/callback_api');
-const multer = require('multer');
+const auth=require('../controllers/student')
 
-var upload = multer({ dest: __dirname + '/public/uploads/' });
 
-router.post('/',upload.single('data'),(req,res)=>{
-    let file = req.file;
-    console.log(typeof(file))
-    // file=file.toString();
-    console.log(file)
-    
-   
-      res.send(file)
-
-//     amqp.connect('amqp://localhost', function(error0, connection) {
-//         console.log("runningg")
-//     if (error0) {
-//         throw error0;
-//     }
-//     connection.createChannel(function(error1, channel) {
-//         if (error1) {
-//             throw error1;
-//         }
-
-//         var queue = 'hello';
-        
-
-//         channel.assertQueue(queue, {
-
-//             durable: false
-//         });
-//         channel.sendToQueue(queue, Buffer.from(JSON.stringify(file)));
-
-//         console.log(" [x] Sent %s", file);
-//     });
-//     setTimeout(function() {
-//         connection.close();
-        
-        
-//     }, 500);
-    
-// });
-})
 // try{
       
          
