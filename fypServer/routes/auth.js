@@ -15,8 +15,8 @@ router.post("/signup", auth.teacherSignupController);
 const multer = require('multer');
 var upload = multer({ dest:path.join(path.dirname(process.mainModule.filename),'public','uploads') });
 
-router.post("/signup/student",auth.studentSignupController,upload.single('data'),auth.saveVoiceController);
-
+router.post("/signup/student",auth.studentSignupController);
+router.post("/signup/studentVoice",upload.single('data'),auth.saveVoiceController);
 
 
 module.exports = router;
