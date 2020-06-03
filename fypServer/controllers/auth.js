@@ -118,7 +118,8 @@ exports.studentSignupController = (req, res, next) => {
 
 
 exports.saveVoiceController = (req, res) => {
-    let file = req.file
+    let file = req.files  
+    console.log(file)
     let path=file.path;
     const fileStream=fs.createReadStream(path)
 
