@@ -5,7 +5,7 @@ const bcrypt = require('bcryptjs');
 var ffmpeg = require('ffmpeg')
 var amqp = require('amqplib/callback_api');
 const minio = require('minio');
-const fs=require('fs')
+const fs = require('fs')
 
 
 
@@ -79,7 +79,7 @@ exports.teacherSignupController = (req, res) => {
 
 exports.studentSignupController = (req, res, next) => {
 
-   studentData=req.body
+    studentData = req.body
     Student.findOne({ email: studentData.email })
         .then(student => {
             if (student) {
@@ -96,7 +96,7 @@ exports.studentSignupController = (req, res, next) => {
                             .then(student => {
                                 var token = jwt.sign({ studentid: student._id }, "shhhh");
                                 console.log(token);
-                                res.send(token);
+                                return res.json({ token, id: student._id });
                             })
 
                     })
@@ -118,10 +118,12 @@ exports.studentSignupController = (req, res, next) => {
 
 
 exports.saveVoiceController = (req, res) => {
-    let file = req.files  
-    console.log(file)
-    let path=file.path;
-    const fileStream=fs.createReadStream(path)
+    let files = req.files
+    console.log(files)
+    
+    let bucketName = files[0].originalname
+    console.log(bucketName)
+    // const fileStream = fs.createReadStream(path)
 
     var minioClient = new minio.Client({
         endPoint: '127.0.0.1',
@@ -129,34 +131,36 @@ exports.saveVoiceController = (req, res) => {
         useSSL: false,
         accessKey: 'MaheenUnzeelah',
         secretKey: 'Cryptography',
-       
+
     });
 
-    minioClient.bucketExists('testbucket', function (err, exists) {
+    minioClient.bucketExists(bucketName, function (err, exists) {
         if (err) {
-            return console.log("erere",err)
+            return console.log("erere", err)
         }
         if (!exists) {
             //Make a bucket called europetrip.
-            minioClient.makeBucket('testbucket', function (err) {
+            minioClient.makeBucket(bucketName, function (err) {
                 if (err) return console.log(err)
 
                 console.log('Bucket created successfully ')
             })
-            }
-            minioClient.fPutObject('testbucket', 'audio.wav', path, function(err, etag) {
-                if (err) return console.log(err)
-                console.log('File uploaded successfully.')
-                res.send('Student Registered')
-              });
+        }
+       files.map(file=>{
+        minioClient.fPutObject(bucketName, file.filename, file.path, function (err, etag) {
+            if (err) return console.log(err)
             
-               
-            });
-        
+        });
+       
+    })
 
-        
-    
-  
+    })
+    console.log('Files uploaded successfully.')
+    res.send('Student Registered')
+
+
+
+
     //     amqp.connect('amqp://localhost', function(error0, connection) {
     //         console.log("runningg")
     //     if (error0) {
