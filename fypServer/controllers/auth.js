@@ -2,10 +2,10 @@ const jwt = require('jsonwebtoken');
 const Teacher = require("../models/Teachers");
 const Student = require("../models/Students");
 const bcrypt = require('bcryptjs');
-var ffmpeg=require('ffmpeg')
+var ffmpeg = require('ffmpeg')
 var amqp = require('amqplib/callback_api');
-
-const path=require('path')
+const minio = require('minio');
+const fs = require('fs')
 
 
 
@@ -77,17 +77,13 @@ exports.teacherSignupController = (req, res) => {
 
 
 
-exports.studentSignupController = (req, res,next) => {
+exports.studentSignupController = (req, res, next) => {
 
-    const studentData= req.body.studentData;
-    file=req.file
-    console.log(req.body.msg)
-    res.locals.file=file
-    console.log(file)
+    studentData = req.body
     Student.findOne({ email: studentData.email })
         .then(student => {
             if (student) {
-                // return res.status(400).json({ email: 'Email alreday exists' });
+                return res.status(400).json({ email: 'Email alreday exists' });
             }
             else {
                 const student = new Student(studentData);
@@ -100,64 +96,121 @@ exports.studentSignupController = (req, res,next) => {
                             .then(student => {
                                 var token = jwt.sign({ studentid: student._id }, "shhhh");
                                 console.log(token);
-                                res.locals.token=token
-                                return next(); 
+                                return res.json({ token, id: student._id });
                             })
-                           
+
                     })
                 })
             }
-          
+
         })
 
         .catch((err) => {
 
             console.log("Error: ", err);
 
-            // res.status(500);
-
-            // res.send("Something went wrong");
+            res.status(500).send("Something went wrong");
 
         });
-       
+
 }
 
-   
 
-exports.saveVoiceController=(req,res)=>{
-    let file = req.file;
+
+exports.saveVoiceController = (req, res) => {
+    let files = req.files
+    console.log(files)
     
-    console.log(typeof(file))
-    // file=file.toString();
-    console.log(file)
-    
-   
-    amqp.connect('amqp://localhost', function(error0, connection) {
-        console.log("runningg")
-    if (error0) {
-        throw error0;
-    }
-    connection.createChannel(function(error1, channel) {
-        if (error1) {
-            throw error1;
-        }
+    let bucketName = files[0].originalname
+    console.log(bucketName)
+    // const fileStream = fs.createReadStream(path)
 
-        var queue = 'hello';
-        
+    var minioClient = new minio.Client({
+        endPoint: '127.0.0.1',
+        port: 9000,
+        useSSL: false,
+        accessKey: 'MaheenUnzeelah',
+        secretKey: 'Cryptography',
 
-        channel.assertQueue(queue, {
-
-            durable: false
-        });
-        channel.sendToQueue(queue, Buffer.from(JSON.stringify(file)));
-
-        console.log(" [x] Sent %s", file);
     });
-    setTimeout(function() {
-        connection.close();
+
+    minioClient.bucketExists(bucketName, function (err, exists) {
+        if (err) {
+            return console.log("erere", err)
+        }
+        if (!exists) {
+            //Make a bucket called europetrip.
+            minioClient.makeBucket(bucketName, function (err) {
+                if (err) return console.log(err)
+
+                console.log('Bucket created successfully ')
+            })
+        }
+       files.map(file=>{
+        minioClient.fPutObject(bucketName, file.filename, file.path, function (err, etag) {
+            if (err) return console.log(err)
+            
+        });
+       
+    })
+
+    })
+    console.log('Files uploaded successfully.')
+    res.send('Student Registered')
+
+
+
+
+    //     amqp.connect('amqp://localhost', function(error0, connection) {
+    //         console.log("runningg")
+    //     if (error0) {
+    //         throw error0;
+    //     }
+    //     connection.createChannel(function(error1, channel) {
+    //         if (error1) {
+    //             throw error1;
+    //         }
+
+    //         var queue = 'hello';
+
+
+    //         channel.assertQueue(queue, {
+
+    //             durable: false
+    //         });
+    //         channel.sendToQueue(queue, Buffer.from(JSON.stringify(file)));
+
+    //         console.log(" [x] Sent %s", file);
+    //     });
+    //     setTimeout(function() {
+    //         connection.close();
+
+
+    //     }, 500);
+
+    // });
+}
+
+exports.studentLoginController = (req, res) => {
+    const email = req.body.email;
+    const password = req.body.password;
+    console.log(email)
+    Student.findOne({ email }).then(stud => {
         
-        
-    }, 500);
-    
-});
+        if (!stud) {
+            return res.status(404).json({ email: 'Student not found' });
+        }
+        bcrypt.compare(password, stud.password)
+            .then(isMatch => {
+                if (isMatch) {
+                    var token = jwt.sign({ studentid: student._id }, "shhhh");
+                    console.log(token);
+                    res.send("Student Exists");
+                }
+                else {
+
+                    return res.status(404).json({ password: 'Password Incorrect' });
+                }
+            })
+    })
 }
