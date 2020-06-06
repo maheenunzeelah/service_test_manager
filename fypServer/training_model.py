@@ -10,7 +10,7 @@ import warnings
 warnings.filterwarnings("ignore")
  
 #path to training data
-source   = "public/uploads/"  
+source   = "public/"  
  
 #path where training speakers will be saved
 dest = "speaker_models/"
