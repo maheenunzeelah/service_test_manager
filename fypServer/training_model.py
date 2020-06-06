@@ -9,11 +9,11 @@ import warnings
 warnings.filterwarnings("ignore")
  
 #path to training data
-source   = "development_set/"  
+source   = "public/uploads/"  
  
 #path where training speakers will be saved
 dest = "speaker_models/"
-train_file = "development_set_enroll.txt"
+train_file = "signupVoices.txt"
 file_paths = open(train_file,'r')
  
 count = 1
@@ -24,7 +24,8 @@ for path in file_paths:
     path = path.replace('\\','/')
     print(path)
     # read the audio
-    sr,audio = read(source + path)
+    sr,audio = read( source+path)
+   
 #    sr = read(source + path)
     
     # extract 40 dimensional MFCC & delta MFCC features

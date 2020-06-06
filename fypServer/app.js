@@ -4,9 +4,9 @@ const mongoose=require('mongoose');
 const config=require('./config');
 const authRoutes=require('./routes/auth')
 const bodyParser = require('body-parser');
-
+const path=require('path')
 app.use(bodyParser.urlencoded({ extended: false }));
-
+app.use(express.static(path.join(__dirname,'public')))
 app.use(bodyParser.json());
 
 mongoose.connect(config.url, { useNewUrlParser: true });
