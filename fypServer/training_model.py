@@ -1,6 +1,7 @@
 #import SpeechRecognition as sr
 import pickle
 import numpy as np
+
 from scipy.io.wavfile import read
 from sklearn.mixture import GaussianMixture as GMM
 # from sklearn.mixture import GMM
@@ -14,18 +15,21 @@ source   = "public/uploads/"
 #path where training speakers will be saved
 dest = "speaker_models/"
 train_file = "signupVoices.txt"
+
 file_paths = open(train_file,'r')
  
 count = 1
 # Extracting features for each speaker (5 files per speakers)
 features = np.asarray(())
 for path in file_paths:
+    
     path = path.strip()
     path = path.replace('\\','/')
-    print(path)
+    print(source+path)
     # read the audio
-    sr,audio = read( source+path)
-   
+    
+    sr,audio = read(source+path)
+    
 #    sr = read(source + path)
     
     # extract 40 dimensional MFCC & delta MFCC features
