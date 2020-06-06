@@ -148,7 +148,7 @@ exports.saveVoiceController = (req, res) => {
             })
         }
         files.map(file => {
-            minioClient.fPutObject(bucketName, file.filename, file.path, function (err, etag) {
+            minioClient.fPutObject(bucketName, `${file.filename}`, file.path, function (err, etag) {
                 if (err) return console.log(err)
 
             });
@@ -227,7 +227,7 @@ exports.studentLoginVoiceController = (req, res) => {
     files.map(file => {
         var stream = minioClient.extensions.listObjectsV2WithMetadata(bucketName, '', true, '')
         stream.on('data', function (obj) {
-            minioClient.fGetObject(bucketName, obj.name, path.join(downPath,obj.name), function (err) {
+            minioClient.fGetObject(bucketName, obj.name, path.join(downPath,`${obj.name}`), function (err) {
                 if (err) {
                     return console.log(err)
                 }
