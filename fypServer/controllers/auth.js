@@ -1,3 +1,6 @@
+
+
+
 const jwt = require('jsonwebtoken');
 const Teacher = require("../models/Teachers");
 const Student = require("../models/Students");
@@ -131,33 +134,48 @@ exports.saveVoiceController = (req, res) => {
     console.log(files)
 
     let bucketName = files[0].originalname
+    files.map(file=>{
+        fs.appendFile('signupVoices.txt',path.join(file.originalname,file.filename)+'\n',{'flags': 'a+'},(err)=>{
+            console.log(err)
+        })
+    })
+    
     console.log(bucketName)
     // const fileStream = fs.createReadStream(path)
 
 
-    minioClient.bucketExists(bucketName, function (err, exists) {
+    minioClient.bucketExists(bucketName, (err, exists)=> {
         if (err) {
             return console.log("erere", err)
         }
         if (!exists) {
             //Make a bucket called europetrip.
+           new Promise((resolve,reject)=>{
             minioClient.makeBucket(bucketName, function (err) {
-                if (err) return console.log(err)
-
+                if (err) reject( console.log(err))
                 console.log('Bucket created successfully ')
+                resolve();
             })
-        }
-        files.map(file => {
+           }).then(function(){files.map(file => {
             minioClient.fPutObject(bucketName, file.filename, file.path, function (err, etag) {
                 if (err) return console.log(err)
-
+                
             });
-
+            console.log('Files uploaded successfully.')
         })
+        })
+        }
+        if(exists)
+          console.log("Already exists")
+      
 
-    })
-    console.log('Files uploaded successfully.')
-    res.send('Student Registered')
+    }
+)
+
+
+
+    
+     res.send('Student Registered')
 
 
 
@@ -227,7 +245,7 @@ exports.studentLoginVoiceController = (req, res) => {
     files.map(file => {
         var stream = minioClient.extensions.listObjectsV2WithMetadata(bucketName, '', true, '')
         stream.on('data', function (obj) {
-            minioClient.fGetObject(bucketName, obj.name, path.join(downPath,obj.name), function (err) {
+            minioClient.fGetObject(bucketName, obj.name, path.join(downPath,bucketName,obj.name), function (err) {
                 if (err) {
                     return console.log(err)
                 }

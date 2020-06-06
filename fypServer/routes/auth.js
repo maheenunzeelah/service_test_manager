@@ -2,10 +2,25 @@ const express = require("express");
 const router = express.Router();
 const auth = require('../controllers/auth');
 const teacherModule = require('./teacher')
-const studentModule = require("./student")
+const studentModule = require("./student");
+const fs=require('fs')
 const path=require('path');
 const multer = require('multer');
-var upload = multer({ dest:path.join(path.dirname(process.mainModule.filename),'public','uploads') });
+const fileStorage=multer.diskStorage({
+    destination:(req,file,cb)=>{
+
+        const pathFile=path.join(path.dirname(process.mainModule.filename),"public","uploads",file.originalname)
+    
+        fs.mkdirSync(pathFile, { recursive: true })
+        cb(null,pathFile)
+    },
+    filename:(req,file,cb)=>{
+        console.log(file)
+          cb(null,Date.now()+file.originalname+'.wav')
+        
+    }
+})
+var upload = multer({storage:fileStorage});
 
 router.use('/login/teacher', teacherModule);
 router.use('/student', studentModule);
