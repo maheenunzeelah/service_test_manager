@@ -6,6 +6,7 @@ const studentModule = require("./student");
 const fs=require('fs')
 const path=require('path');
 const multer = require('multer');
+
 const fileStorage=multer.diskStorage({
     destination:(req,file,cb)=>{
 

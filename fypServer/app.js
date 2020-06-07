@@ -6,7 +6,9 @@ const authRoutes=require('./routes/auth')
 const bodyParser = require('body-parser');
 const path=require('path')
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use(express.static(path.join(__dirname,'public')))
+app.use(express.static(path.join(__dirname,'training_model.py')))
+app.use(express.static(path.join(__dirname,'public','uploads')))
+
 app.use(bodyParser.json());
 
 mongoose.connect(config.url, { useNewUrlParser: true });
