@@ -44,10 +44,14 @@ for path in lines:
     if count == 5:
         gmm = GMM(n_components = 16, max_iter = 200, covariance_type='diag',n_init = 3)
         gmm.fit(features)
- 
+       
         # dumping the trained gaussian model
-        picklefile = path.split("-")[0]+".gmm"
-        pickle.dump(gmm,open(dest + picklefile,"w+"))
+        picklefile = path.split("/")[1]+".gmm"
+        print(picklefile)
+        basedir = os.path.dirname(dest)
+        if not os.path.exists(basedir):
+          os.makedirs(basedir)
+        pickle.dump(gmm,open(dest + picklefile,"wb"))
         print('+ modeling completed for speaker:',picklefile," with data point = ",features.shape)
         features = np.asarray(())
         count = 0
