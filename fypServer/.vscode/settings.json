@@ -1,4 +1,4 @@
 {
     "python.linting.enabled": false,
-    "python.pythonPath": "D:\\python\\python.exe"
+    "python.pythonPath": "/usr/bin/python"
 }
