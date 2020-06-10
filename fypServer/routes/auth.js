@@ -6,6 +6,7 @@ const studentModule = require("./student");
 const fs=require('fs')
 const path=require('path');
 const multer = require('multer');
+
 const fileStorage=multer.diskStorage({
     destination:(req,file,cb)=>{
 
@@ -16,7 +17,7 @@ const fileStorage=multer.diskStorage({
     },
     filename:(req,file,cb)=>{
         console.log(file)
-          cb(null,Date.now()+file.originalname+'.wav')
+          cb(null,Date.now()+file.originalname)
         
     }
 })

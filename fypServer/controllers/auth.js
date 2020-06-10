@@ -1,11 +1,12 @@
 
 
 
+    // const ffmpeg = require('fluent-ffmpeg');
 const jwt = require('jsonwebtoken');
 const Teacher = require("../models/Teachers");
 const Student = require("../models/Students");
 const bcrypt = require('bcryptjs');
-var ffmpeg = require('ffmpeg')
+
 var amqp = require('amqplib/callback_api');
 const minio = require('minio');
 const fs = require('fs');
@@ -130,6 +131,10 @@ exports.studentSignupController = (req, res, next) => {
 
 
 exports.saveVoiceController = (req, res) => {
+
+    
+    
+
     let files = req.files
     console.log(files)
 
