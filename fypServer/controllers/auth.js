@@ -10,7 +10,7 @@ var amqp = require('amqplib/callback_api');
 const minio = require('minio');
 const fs = require('fs');
 const path = require('path');
-const {spawn}=require('child_process');
+
 
 var minioClient = new minio.Client({
     endPoint: '127.0.0.1',
@@ -156,14 +156,8 @@ exports.saveVoiceController = (req, res) => {
                 console.log('Bucket created successfully ')
                 resolve();
             })
-<<<<<<< HEAD
-        }
-        files.map(file => {
-            minioClient.fPutObject(bucketName, `${file.filename}`, file.path, function (err, etag) {
-=======
            }).then(function(){files.map(file => {
             minioClient.fPutObject(bucketName, file.filename, file.path, function (err, etag) {
->>>>>>> 2de34799fffbe3ecdec416673e729d4e4c1650a1
                 if (err) return console.log(err)
                 
             });
@@ -251,11 +245,7 @@ exports.studentLoginVoiceController = (req, res) => {
     files.map(file => {
         var stream = minioClient.extensions.listObjectsV2WithMetadata(bucketName, '', true, '')
         stream.on('data', function (obj) {
-<<<<<<< HEAD
-            minioClient.fGetObject(bucketName, obj.name, path.join(downPath,`${obj.name}`), function (err) {
-=======
             minioClient.fGetObject(bucketName, obj.name, path.join(downPath,bucketName,obj.name), function (err) {
->>>>>>> 2de34799fffbe3ecdec416673e729d4e4c1650a1
                 if (err) {
                     return console.log(err)
                 }

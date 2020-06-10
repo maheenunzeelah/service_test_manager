@@ -6,17 +6,18 @@ const studentModule = require("./student");
 const fs=require('fs')
 const path=require('path');
 const multer = require('multer');
+
 const fileStorage=multer.diskStorage({
     destination:(req,file,cb)=>{
-
+        console.log(file)
         const pathFile=path.join(path.dirname(process.mainModule.filename),"public","uploads",file.originalname)
     
-        fs.mkdirSync(pathFile, { recursive: true })
+        fs.mkdirSync(pathFile)
         cb(null,pathFile)
     },
     filename:(req,file,cb)=>{
         console.log(file)
-          cb(null,Date.now()+file.originalname+'.wav')
+          cb(null,Date.now()+file.originalname)
         
     }
 })
