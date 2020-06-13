@@ -140,7 +140,7 @@ exports.saveVoiceController = (req, res) => {
 
     let bucketName = files[0].originalname
     files.map(file=>{
-        fs.appendFile('signupVoices.txt',path.join(file.originalname,file.filename)+'\n',{'flags': 'a+'},(err)=>{
+        fs.appendFile('signupVoices.txt',path.join(file.originalname,file.filename+'.mp3')+'\n',{'flags': 'a+'},(err)=>{
             console.log(err)
         })
     })

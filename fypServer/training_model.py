@@ -2,6 +2,9 @@
 import pickle
 import numpy as np
 import os
+from pathlib import Path
+from pydub import AudioSegment
+import pydub
 from scipy.io.wavfile import read
 from sklearn.mixture import GaussianMixture as GMM
 # from sklearn.mixture import GMM
@@ -23,13 +26,18 @@ lines= (line for line in lines if line)
 count = 1
 # Extracting features for each speaker (5 files per speakers)
 features = np.asarray(())
-for path in lines:
-    print(path)
-    path = path.replace('\\','/')
 
+for path in lines:
+  
+   
+    path = path.replace('\\','/')
+    path=Path(source+path)
+    print(path)
+    sound = AudioSegment.from_mp3(path)
+    # sound.export('wy.wav', format="wav")
     # read the audio
     
-    sr,audio = read(source+path)
+    sr,audio = read(path)
     print(sr)
 #    sr = read(source + path)
     
@@ -48,7 +56,7 @@ for path in lines:
         # dumping the trained gaussian model
         picklefile = path.split("/")[1]+".gmm"
         print(picklefile)
-        basedir = os.path.dirname(dest)
+        basedir = os.path.dirname(dest+picklefile)
         if not os.path.exists(basedir):
           os.makedirs(basedir)
         pickle.dump(gmm,open(dest + picklefile,"wb"))
