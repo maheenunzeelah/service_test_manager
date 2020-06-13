@@ -28,7 +28,24 @@ const fileStorage = multer.diskStorage({
 
     }
 })
+const fileStorageLogin = multer.diskStorage({
+    destination: (req, file, cb) => {
+      
+
+        const pathFile = path.join(path.dirname(process.mainModule.filename), "public", "loginUploads", file.originalname)
+       
+        fs.mkdirSync(pathFile, { recursive: true })
+        cb(null, pathFile)
+    },
+    filename: (req, file, cb) => {
+        console.log(file)
+        
+        cb(null, Date.now() + file.originalname+'.wav')
+
+    }
+})
 var upload = multer({ storage: fileStorage });
+var loginUploads=multer({storage:loginUploads})
 
 router.use('/login/teacher', teacherModule);
 router.use('/student', studentModule);
@@ -42,6 +59,6 @@ router.post("/signup", auth.teacherSignupController);
 router.post("/signup/student", auth.studentSignupController);
 router.post("/signup/studentVoice", upload.array('data', 5), auth.saveVoiceController);
 router.post("/login/student", auth.studentLoginController);
-router.post("/login/studentVoiceAuth", upload.array('data', 2), auth.studentLoginVoiceController);
+router.post("/login/studentVoiceAuth", loginUploads.array('data', 2), auth.studentLoginVoiceController);
 
 module.exports = router;
