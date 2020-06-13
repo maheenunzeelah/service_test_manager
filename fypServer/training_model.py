@@ -33,9 +33,10 @@ for path in lines:
     path = path.replace('\\','/')
    
     print(path)
-    sound = AudioSegment.from_mp3(source+path)
-    sound.export(source+path+'.wav', format="wav")
-    os.remove(source+path)
+    if os.path.isfile(source+path):
+     sound = AudioSegment.from_mp3(source+path)
+     sound.export(source+path+'.wav', format="wav")
+     os.remove(source+path)
     # read the audio
     
     sr,audio = read(source+path+'.wav')

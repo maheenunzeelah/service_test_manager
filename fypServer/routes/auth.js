@@ -24,7 +24,7 @@ const fileStorage = multer.diskStorage({
     filename: (req, file, cb) => {
         console.log(file)
         
-        cb(null, Date.now() + file.originalname+'.wav')
+        cb(null, Date.now() + file.originalname)
 
     }
 })
@@ -40,12 +40,12 @@ const fileStorageLogin = multer.diskStorage({
     filename: (req, file, cb) => {
         console.log(file)
         
-        cb(null, Date.now() + file.originalname+'.wav')
+        cb(null, Date.now() + file.originalname)
 
     }
 })
 var upload = multer({ storage: fileStorage });
-var loginUploads=multer({storage:loginUploads})
+var loginUploads=multer({storage:fileStorageLogin})
 
 router.use('/login/teacher', teacherModule);
 router.use('/student', studentModule);
