@@ -239,7 +239,7 @@ exports.studentLoginController = (req, res) => {
                 if (isMatch) {
                     var token = jwt.sign({ studentid: stud._id }, "shhhh");
                     console.log(token);
-                    return res.json({ id: stud._id });
+                    return res.json({ id: stud._id ,token});
                 }
                 else {
 
@@ -250,6 +250,7 @@ exports.studentLoginController = (req, res) => {
 }
 
 exports.studentLoginVoiceController = (req, res) => {
+    
     let files = req.files
     files.map(file => {
         fs.appendFile('loginVoices.txt', path.join(file.originalname, file.filename) + '\n', { 'flags': 'a+' }, (err) => {
@@ -276,11 +277,11 @@ exports.studentLoginVoiceController = (req, res) => {
         })
         stream.on('error', function (err) { console.log(err) })
     })
-
+    var dataToSend
     const python = spawn('python', ['test_performance.py']);
     python.stdout.on('data', function (data) {
         console.log('Pipe data from python script ...');
-        dataToSend = data.toString();
+         dataToSend = data.toString();
     });
     python.on('close', (code) => {
         console.log(`child process close all stdio with code ${code}`);
