@@ -35,7 +35,7 @@ exports.teacherLoginController = (req, res) => {
                 if (isMatch) {
                     var token = jwt.sign({ teacherid: teacher._id }, "shhhh");
                     console.log(token);
-                    res.send(token);
+                    res.json({token,depart:teacher.depart});
                 }
                 else {
 
@@ -64,7 +64,7 @@ exports.teacherSignupController = (req, res) => {
                             .then(teacher => {
                                 var token = jwt.sign({ teacherid: teacher._id }, "shhhh");
                                 console.log(token);
-                                res.send(token);
+                                res.json({token,depart:teacher.department});
                             })
                     })
                 })
@@ -92,6 +92,7 @@ exports.teacherSignupController = (req, res) => {
 exports.studentSignupController = (req, res, next) => {
 
     studentData = req.body
+    console.log(studentData)
     Student.findOne({ email: studentData.email })
         .then(student => {
             if (student) {
