@@ -3,7 +3,7 @@ const router=express.Router();
 // var jwt=require('jsonwebtoken');
 const auth=require('../controllers/student')
 
-
+// router.get('/tests/:page', teacher.getTestController)
 // try{
       
          

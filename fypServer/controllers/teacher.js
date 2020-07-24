@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 const Tests = require("../models/Tests");
 const Questions = require("../models/Question");
-
+const Groups = require("../models/Groups");
 
 exports.postTestController = (req, res) => {
     //Token received from axios header
@@ -161,7 +161,29 @@ function formatAMPM(date) {
     var strTime = month + '/' + dat + '/' + year + '  ' + hours + ':' + minutes + ' ' + ampm;
     return strTime;
 }
+exports.getQuestionsByTestController=(req,res)=>{
+    var token = req.headers['authorization'];
+    const test=req.params.test
+    test.length>0?match={test}:match={}
+    try {
+        var decoded = jwt.verify(token, 'shhhh');
+        match = {...match, teacher: decoded.teacherid }
+        console.log(match)
+    Questions.find().populate({
+        path:'test',
+        model:'Tests',
+        match
+    }) .exec(function (err, ques) {
 
+        ques = ques.filter(function (ques) {
+
+            return ques.test; // return only questions with test matching 'testName: "test1"' query
+        })})
+}
+catch (err) {
+    res.status(401).send(err);
+}
+}
 exports.getQuestionsController = (req, res) => {
    
     var token = req.headers['authorization'];
@@ -322,4 +344,53 @@ exports.updateQuestionController = (req, res) => {
         res.status(401).send(err);
     }
 
+}
+
+//GROUP CONTROLLERS
+
+exports.createGroupController=(req,res)=>{
+   //Token received from axios header
+   var token = req.headers.authorization;
+
+   var groupName = req.body.groupName;
+   var data = req.body;
+
+   try {
+       var decoded = jwt.verify(token, 'shhhh');
+       teach = decoded.teacherid;
+       //Insert teacher Id who has created test in Test table
+       data.teacher = decoded.teacherid;
+
+       //Create Test if that testName does not already exists
+       Groups.find({ groupName })
+           .then(group => {
+               var cond
+               group.map(grp => {
+                   cond = grp.teacher == teach
+               })
+               if (cond)
+                   return res.status(400).json({ group: 'Group Name alreday exists' });
+               else {
+                   if (groupName == undefined)
+                       res.send("Enter Group name")
+                   else {
+
+                       const group = new Groups(data);
+                       group.save()
+                           .then(resolve => {
+                               console.log(resolve);
+                               res.send(resolve);
+
+                           })
+                           .catch((err) => {
+                               res.send('Something went wrong')
+                           })
+                   }
+               }
+           })
+   }
+   catch (err) {
+       console.log(err)
+       res.status(401).send(err)
+   }
 }

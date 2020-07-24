@@ -34,6 +34,10 @@ router.put('/updateQues/:id', teacher.updateQuestionController)
 // DELETING QUESTIONS FROM CREATED TEST API
 router.delete('/delQues/:id', teacher.deleteQuestionController)
 
+//FOR GROUPS
+
+//POST API FOR CREATING GROUPS
+router.post('/createGroup',teacher.createGroupController)
 
 
 module.exports = router;
