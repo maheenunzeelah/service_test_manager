@@ -39,5 +39,6 @@ router.delete('/delQues/:id', teacher.deleteQuestionController)
 //POST API FOR CREATING GROUPS
 router.post('/createGroup',teacher.createGroupController)
 
-
+//FETCHING STUDENTS
+router.get('/fetchStudents',teacher.getStudentsByDepartController)
 module.exports = router;

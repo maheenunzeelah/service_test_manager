@@ -11,6 +11,7 @@
     "ffmpeg": "0.0.4",
     "fluent-ffmpeg": "^2.1.2",
     "jsonwebtoken": "^8.5.1",
+    "lodash": "^4.17.19",
     "mime": "^2.4.6",
     "minio": "^7.0.16",
     "moment": "^2.24.0",
