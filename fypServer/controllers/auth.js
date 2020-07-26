@@ -1,16 +1,16 @@
 
 
 
+// const ffmpeg = require('fluent-ffmpeg');
 const jwt = require('jsonwebtoken');
 const Teacher = require("../models/Teachers");
 const Student = require("../models/Students");
 const bcrypt = require('bcryptjs');
-var ffmpeg = require('ffmpeg')
 var amqp = require('amqplib/callback_api');
 const minio = require('minio');
 const fs = require('fs');
 const path = require('path');
-
+const { spawn } = require('child_process');
 
 var minioClient = new minio.Client({
     endPoint: '127.0.0.1',
@@ -33,9 +33,9 @@ exports.teacherLoginController = (req, res) => {
         bcrypt.compare(password, teacher.password)
             .then(isMatch => {
                 if (isMatch) {
-                    var token = jwt.sign({ teacherid: teacher._id }, "shhhh");
+                    var token = jwt.sign({ teacherid: teacher._id ,depart:teacher.department}, "shhhh");
                     console.log(token);
-                    res.send(token);
+                    res.json({token});
                 }
                 else {
 
@@ -62,9 +62,9 @@ exports.teacherSignupController = (req, res) => {
                         teacher.password = hash;
                         teacher.save()
                             .then(teacher => {
-                                var token = jwt.sign({ teacherid: teacher._id }, "shhhh");
+                                var token = jwt.sign({ teacherid: teacher._id,depart:teacher.department }, "shhhh");
                                 console.log(token);
-                                res.send(token);
+                                return res.json({token});
                             })
                     })
                 })
@@ -92,6 +92,7 @@ exports.teacherSignupController = (req, res) => {
 exports.studentSignupController = (req, res, next) => {
 
     studentData = req.body
+    console.log(studentData)
     Student.findOne({ email: studentData.email })
         .then(student => {
             if (student) {
@@ -130,52 +131,67 @@ exports.studentSignupController = (req, res, next) => {
 
 
 exports.saveVoiceController = (req, res) => {
+
+    let dataToSend
     let files = req.files
     console.log(files)
 
     let bucketName = files[0].originalname
-    files.map(file=>{
-        fs.appendFile('signupVoices.txt',path.join(file.originalname,file.filename)+'\n',{'flags': 'a+'},(err)=>{
+    files.map(file => {
+        fs.appendFile('signupVoices.txt', path.join(file.originalname, file.filename) + '\n', { 'flags': 'a+' }, (err) => {
             console.log(err)
         })
     })
-    
+
     console.log(bucketName)
     // const fileStream = fs.createReadStream(path)
 
 
-    minioClient.bucketExists(bucketName, (err, exists)=> {
+    minioClient.bucketExists(bucketName, (err, exists) => {
         if (err) {
             return console.log("erere", err)
         }
         if (!exists) {
             //Make a bucket called europetrip.
-           new Promise((resolve,reject)=>{
-            minioClient.makeBucket(bucketName, function (err) {
-                if (err) reject( console.log(err))
-                console.log('Bucket created successfully ')
-                resolve();
+            new Promise((resolve, reject) => {
+                minioClient.makeBucket(bucketName, function (err) {
+                    if (err) reject(console.log(err))
+                    console.log('Bucket created successfully ')
+                    resolve();
+                })
+            }).then(function () {
+                files.map(file => {
+                    minioClient.fPutObject(bucketName, file.filename, file.path, function (err, etag) {
+                        if (err) return console.log(err)
+
+                    });
+                    console.log('Files uploaded successfully.')
+                })
+                const python = spawn('python', ['training_model.py']);
+                python.stdout.on('data', function (data) {
+                    console.log('Pipe data from python script ...');
+                    dataToSend = data.toString();
+                });
+                python.on('close', (code) => {
+                    console.log(`child process close all stdio with code ${code}`);
+                    // send data to browser
+                    console.log(dataToSend)
+                    fs.truncate("signupVoices.txt",0,function(){console.log('Signup deleted')})
+                });
+
             })
-           }).then(function(){files.map(file => {
-            minioClient.fPutObject(bucketName, file.filename, file.path, function (err, etag) {
-                if (err) return console.log(err)
-                
-            });
-            console.log('Files uploaded successfully.')
-        })
-        })
         }
-        if(exists)
-          console.log("Already exists")
-      
+        if (exists)
+            console.log("Already exists")
+
 
     }
-)
+    )
 
 
 
-    
-     res.send('Student Registered')
+
+    res.send('Student Registered')
 
 
 
@@ -224,7 +240,7 @@ exports.studentLoginController = (req, res) => {
                 if (isMatch) {
                     var token = jwt.sign({ studentid: stud._id }, "shhhh");
                     console.log(token);
-                    return res.json({ id: stud._id });
+                    return res.json({ id: stud._id ,token});
                 }
                 else {
 
@@ -235,8 +251,13 @@ exports.studentLoginController = (req, res) => {
 }
 
 exports.studentLoginVoiceController = (req, res) => {
+    
     let files = req.files
-
+    files.map(file => {
+        fs.appendFile('loginVoices.txt', path.join(file.originalname, file.filename) + '\n', { 'flags': 'a+' }, (err) => {
+            console.log(err)
+        })
+    })
     const downPath = path.join(path.dirname(process.mainModule.filename), 'public', 'downloads')
 
     let bucketName = files[0].originalname
@@ -245,15 +266,31 @@ exports.studentLoginVoiceController = (req, res) => {
     files.map(file => {
         var stream = minioClient.extensions.listObjectsV2WithMetadata(bucketName, '', true, '')
         stream.on('data', function (obj) {
-            minioClient.fGetObject(bucketName, obj.name, path.join(downPath,bucketName,obj.name), function (err) {
+            minioClient.fGetObject(bucketName, obj.name, path.join(downPath, bucketName, obj.name), function (err) {
                 if (err) {
                     return console.log(err)
                 }
                 console.log('success')
+                fs.appendFile('matchVoices.txt', path.join(obj.name) + '\n', { 'flags': 'a+' }, (err) => {
+                    console.log(err)
+                })
             })
         })
         stream.on('error', function (err) { console.log(err) })
     })
+    var dataToSend
+    const python = spawn('python', ['test_performance.py']);
+    python.stdout.on('data', function (data) {
+        console.log('Pipe data from python script ...');
+         dataToSend = data.toString();
+    });
+    python.on('close', (code) => {
+        console.log(`child process close all stdio with code ${code}`);
+        // send data to browser
+        console.log(dataToSend)
+        fs.truncate("loginVoices.txt",0,function(){console.log('login deleted')})
+    });
+    res.send("login")
 
     // minioClient.bucketExists(bucketName, function (err, exists) {
     //     if (err) {
