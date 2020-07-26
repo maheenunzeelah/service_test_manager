@@ -33,9 +33,9 @@ exports.teacherLoginController = (req, res) => {
         bcrypt.compare(password, teacher.password)
             .then(isMatch => {
                 if (isMatch) {
-                    var token = jwt.sign({ teacherid: teacher._id }, "shhhh");
+                    var token = jwt.sign({ teacherid: teacher._id ,depart:teacher.department}, "shhhh");
                     console.log(token);
-                    res.json({token,depart:teacher.depart});
+                    res.json({token});
                 }
                 else {
 
@@ -62,9 +62,9 @@ exports.teacherSignupController = (req, res) => {
                         teacher.password = hash;
                         teacher.save()
                             .then(teacher => {
-                                var token = jwt.sign({ teacherid: teacher._id }, "shhhh");
+                                var token = jwt.sign({ teacherid: teacher._id,depart:teacher.department }, "shhhh");
                                 console.log(token);
-                                res.json({token,depart:teacher.department});
+                                return res.json({token});
                             })
                     })
                 })

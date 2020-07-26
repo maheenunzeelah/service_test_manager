@@ -2,7 +2,8 @@ const jwt = require('jsonwebtoken');
 const Tests = require("../models/Tests");
 const Questions = require("../models/Question");
 const Groups = require("../models/Groups");
-
+const Students = require("../models/Students");
+let _=require('lodash')
 exports.postTestController = (req, res) => {
     //Token received from axios header
     var token = req.headers.authorization;
@@ -393,4 +394,27 @@ exports.createGroupController=(req,res)=>{
        console.log(err)
        res.status(401).send(err)
    }
+}
+
+//Fetching Student list based on their department
+exports.getStudentsByDepartController=(req,res)=>{
+  const token=req.headers.authorization
+ 
+  try{
+    const decoded = jwt.verify(token, 'shhhh');
+    const department=decoded.depart
+    console.log(department)
+    Students.find({department})
+     .then(student=>{
+        student.map(stud=>{
+         stud= _.omit(stud,'password')
+         console.log(stud)
+         })
+       return res.send(student)
+      
+     })
+  }
+  catch(err){
+    return res.status(401).send(err)
+  }
 }
