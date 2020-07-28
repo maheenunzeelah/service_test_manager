@@ -255,7 +255,7 @@ exports.studentLoginVoiceController = (req, res) => {
     let files = req.files
     files.map(file => {
         fs.appendFile('loginVoices.txt', path.join(file.originalname, file.filename) + '\n', { 'flags': 'a+' }, (err) => {
-            console.log(err)
+            // console.log(err)
         })
     })
     const downPath = path.join(path.dirname(process.mainModule.filename), 'public', 'downloads')
@@ -288,7 +288,7 @@ exports.studentLoginVoiceController = (req, res) => {
         console.log(`child process close all stdio with code ${code}`);
         // send data to browser
         console.log(dataToSend)
-        fs.truncate("loginVoices.txt",0,function(){console.log('login deleted')})
+        fs.truncate("loginVoices.txt",0,function(){console.log('')})
     });
     res.send("login")
 

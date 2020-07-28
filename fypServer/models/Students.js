@@ -9,6 +9,7 @@ email: String,
 password: String,
 role: String,
 batch:String,
+rollNo:Number,
 department:String
 
 });

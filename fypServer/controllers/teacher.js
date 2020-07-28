@@ -3,6 +3,7 @@ const Tests = require("../models/Tests");
 const Questions = require("../models/Question");
 const Groups = require("../models/Groups");
 const Students = require("../models/Students");
+const is_Empty=require('../is_Empty')
 let _=require('lodash')
 exports.postTestController = (req, res) => {
     //Token received from axios header
@@ -403,7 +404,7 @@ exports.getStudentsByDepartController=(req,res)=>{
   try{
     const decoded = jwt.verify(token, 'shhhh');
     const department=decoded.depart
-    console.log(department)
+    !is_Empty(department)?(
     Students.find({department})
      .then(student=>{
         student.map(stud=>{
@@ -413,6 +414,7 @@ exports.getStudentsByDepartController=(req,res)=>{
        return res.send(student)
       
      })
+    ): res.send('No students found')
   }
   catch(err){
     return res.status(401).send(err)
