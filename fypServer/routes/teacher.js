@@ -41,4 +41,7 @@ router.post('/createGroup',teacher.createGroupController)
 
 //FETCHING STUDENTS
 router.get('/fetchStudents',teacher.getStudentsByDepartController)
+
+//GROUP LISTS
+router.get('/groupList/:page',teacher.getGroupListController)
 module.exports = router;

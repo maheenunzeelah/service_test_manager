@@ -420,3 +420,39 @@ exports.getStudentsByDepartController=(req,res)=>{
     return res.status(401).send(err)
   }
 }
+
+//Fetching Groups List
+exports.getGroupListController=(req,res)=>{
+    let token=req.headers['authorization']
+    try{
+        let decoded=jwt.verify(token,'shhhh')
+        let query={teacher:decoded.teacherid}
+        const page = +req.params.page || 1;
+        const Group_Per_Page=5;
+        let totalGroups;
+        Groups.find(query).countDocuments().then(numGroup=>{
+            totalGroups=numGroup
+        return Groups.find(query)
+        .skip((page-1)*Group_Per_Page)
+        .limit(Group_Per_Page)
+        .then(group=>{
+            res.send({
+                group,
+                currentPage: page,
+                group_per_page: Group_Per_Page,
+                hasNextPage: page * Group_Per_Page < totalGroups,
+                nextPage: page + 1,
+                previousPage: page - 1,
+                hasPreviousPage: page > 1,
+                lastPage: Math.ceil(totalGroups / Group_Per_Page)
+            })
+        })
+
+
+    })
+}
+    catch (err) {
+        res.status(401).send(err);
+    }
+    }
+  
