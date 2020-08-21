@@ -40,7 +40,7 @@ router.delete('/delQues/:id', teacher.deleteQuestionController)
 router.post('/createGroup',teacher.createGroupController)
 
 //FETCHING STUDENTS
-router.get('/fetchStudents',teacher.getStudentsByDepartController)
+router.get('/fetchStudents/:batch',teacher.getStudentsByDepartController)
 
 //GROUP LISTS
 router.get('/groupList/:page',teacher.getGroupListController)

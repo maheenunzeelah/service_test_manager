@@ -400,23 +400,27 @@ exports.createGroupController=(req,res)=>{
 //Fetching Student list based on their department
 exports.getStudentsByDepartController=(req,res)=>{
   const token=req.headers.authorization
- 
+  const batch=req.params.batch  
   try{
     const decoded = jwt.verify(token, 'shhhh');
+    console.log(batch)
     const department=decoded.depart
-    !is_Empty(department)?(
-    Students.find({department})
+    const dep= !is_Empty(department)
+    dep?(
+    Students.find({department,batch})
      .then(student=>{
-        student.map(stud=>{
-         stud= _.omit(stud,'password')
+           student.map(stud=>{
+   
          console.log(stud)
          })
        return res.send(student)
       
      })
+     .catch(err=>{console.log(err)})
     ): res.send('No students found')
   }
   catch(err){
+      console.log(err)
     return res.status(401).send(err)
   }
 }
