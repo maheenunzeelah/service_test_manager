@@ -2,6 +2,7 @@ const jwt = require('jsonwebtoken');
 const Tests = require("../models/Tests");
 const Questions = require("../models/Question");
 const Groups = require("../models/Groups");
+const StudentsInGroup = require("../models/Students_In_Group");
 const Students = require("../models/Students");
 const is_Empty=require('../is_Empty')
 let _=require('lodash')
@@ -462,8 +463,29 @@ exports.getGroupListController=(req,res)=>{
 
     exports.addStudentsController=(req,res)=>{
         const token=req.headers['authorization'];
+        const arr=req.body
+       
+        console.log(arr)
         try{
           const decoded=jwt.verify(token,'shhhh')
+      arr.map(obj=>{
+         StudentsInGroup.find({studentId:obj.studentId,groupId:obj.groupId})
+          .then(result=>{
+               if(is_Empty(result)){
+                StudentsInGroup.save(obj)
+                .then((docs)=>{
+                    
+                })
+               }
+               else{
+                   console.log('already')
+               }
+          }   
+        )
+          })
+          return res.send()
+        
+     
           
         }
         catch(err){

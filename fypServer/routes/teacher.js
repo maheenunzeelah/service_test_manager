@@ -1,3 +1,5 @@
+
+
 const express = require("express");
 const router = express.Router();
 const teacher = require('../controllers/teacher')
@@ -44,4 +46,8 @@ router.get('/fetchStudents/:batch',teacher.getStudentsByDepartController)
 
 //GROUP LISTS
 router.get('/groupList/:page',teacher.getGroupListController)
+
+//ADD STUDENTS IN GROUP
+router.post('/addStudents',teacher.addStudentsController)
+
 module.exports = router;
