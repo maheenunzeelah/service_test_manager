@@ -471,14 +471,16 @@ exports.getGroupListController=(req,res)=>{
       arr.map(obj=>{
          StudentsInGroup.find({studentId:obj.studentId,groupId:obj.groupId})
           .then(result=>{
-               if(is_Empty(result)){
-                StudentsInGroup.save(obj)
+              console.log(result.length===0)
+               if(result.length===0){
+                const studentInGroup = new StudentsInGroup(obj);
+                studentInGroup.save()
                 .then((docs)=>{
-                    
+                    console.log('notfound->'+docs)
                 })
                }
                else{
-                   console.log('already')
+                   console.log('found->'+result)
                }
           }   
         )
