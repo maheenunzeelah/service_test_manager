@@ -407,7 +407,7 @@ exports.getStudentsByDepartController=(req,res)=>{
     const department=decoded.depart
     const dep= !is_Empty(department)
     dep?(
-    Students.find({department,batch})
+    Students.find({department,batch}).sort('rollNo')
      .then(student=>{
            student.map(stud=>{
    
@@ -458,5 +458,16 @@ exports.getGroupListController=(req,res)=>{
     catch (err) {
         res.status(401).send(err);
     }
+    }
+
+    exports.addStudentsController=(req,res)=>{
+        const token=req.headers['authorization'];
+        try{
+          const decoded=jwt.verify(token,'shhhh')
+          
+        }
+        catch(err){
+
+        }
     }
   

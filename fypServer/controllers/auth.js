@@ -24,6 +24,7 @@ var minioClient = new minio.Client({
 exports.teacherLoginController = (req, res) => {
     const email = req.body.email;
     const password = req.body.password;
+    console.log(req.body)
     console.log(email)
     Teacher.findOne({ email }).then(teacher => {
         console.log(teacher)
