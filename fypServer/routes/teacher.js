@@ -50,4 +50,7 @@ router.get('/groupList/:page',teacher.getGroupListController)
 //ADD STUDENTS IN GROUP
 router.post('/addStudents',teacher.addStudentsController)
 
+//ASSIGN TEST
+router.post('/assignTests',teacher.assignTestController)
+
 module.exports = router;

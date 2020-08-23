@@ -3,9 +3,10 @@ const Tests = require("../models/Tests");
 const Questions = require("../models/Question");
 const Groups = require("../models/Groups");
 const StudentsInGroup = require("../models/Students_In_Group");
+const GroupsAssignedTests=require("../models/Groups_Assigned_Test")
 const Students = require("../models/Students");
-const is_Empty=require('../is_Empty')
-let _=require('lodash')
+const is_Empty = require('../is_Empty')
+let _ = require('lodash')
 exports.postTestController = (req, res) => {
     //Token received from axios header
     var token = req.headers.authorization;
@@ -57,33 +58,33 @@ exports.getTestController = (req, res) => {
     var token = req.headers['authorization'];
     try {
         var decoded = jwt.verify(token, 'shhhh');
-        const course=req.query.course;
+        const course = req.query.course;
         var query = { teacher: decoded.teacherid };
-        course.length>0?query={...query,course}:query={...query}
+        course.length > 0 ? query = { ...query, course } : query = { ...query }
         const page = +req.params.page || 1;
-        const Test_Per_Page=5;
+        const Test_Per_Page = 5;
         let totalTests;
-        Tests.find(query).countDocuments().then(numTest=>{
-            totalTests=numTest
-        return Tests.find(query)
-        .skip((page-1)*Test_Per_Page)
-        .limit(Test_Per_Page)
-        .then(test=>{
-            res.send({
-                test,
-                currentPage: page,
-                ques_per_page: Test_Per_Page,
-                hasNextPage: page * Test_Per_Page < totalTests,
-                nextPage: page + 1,
-                previousPage: page - 1,
-                hasPreviousPage: page > 1,
-                lastPage: Math.ceil(totalTests / Test_Per_Page)
-            })
+        Tests.find(query).countDocuments().then(numTest => {
+            totalTests = numTest
+            return Tests.find(query)
+                .skip((page - 1) * Test_Per_Page)
+                .limit(Test_Per_Page)
+                .then(test => {
+                    res.send({
+                        test,
+                        currentPage: page,
+                        ques_per_page: Test_Per_Page,
+                        hasNextPage: page * Test_Per_Page < totalTests,
+                        nextPage: page + 1,
+                        previousPage: page - 1,
+                        hasPreviousPage: page > 1,
+                        lastPage: Math.ceil(totalTests / Test_Per_Page)
+                    })
+                })
+
+
         })
-
-
-    })
-}
+    }
     catch (err) {
         res.status(401).send(err);
     }
@@ -164,49 +165,50 @@ function formatAMPM(date) {
     var strTime = month + '/' + dat + '/' + year + '  ' + hours + ':' + minutes + ' ' + ampm;
     return strTime;
 }
-exports.getQuestionsByTestController=(req,res)=>{
+exports.getQuestionsByTestController = (req, res) => {
     var token = req.headers['authorization'];
-    const test=req.params.test
-    test.length>0?match={test}:match={}
+    const test = req.params.test
+    test.length > 0 ? match = { test } : match = {}
     try {
         var decoded = jwt.verify(token, 'shhhh');
-        match = {...match, teacher: decoded.teacherid }
+        match = { ...match, teacher: decoded.teacherid }
         console.log(match)
-    Questions.find().populate({
-        path:'test',
-        model:'Tests',
-        match
-    }) .exec(function (err, ques) {
+        Questions.find().populate({
+            path: 'test',
+            model: 'Tests',
+            match
+        }).exec(function (err, ques) {
 
-        ques = ques.filter(function (ques) {
+            ques = ques.filter(function (ques) {
 
-            return ques.test; // return only questions with test matching 'testName: "test1"' query
-        })})
-}
-catch (err) {
-    res.status(401).send(err);
-}
+                return ques.test; // return only questions with test matching 'testName: "test1"' query
+            })
+        })
+    }
+    catch (err) {
+        res.status(401).send(err);
+    }
 }
 exports.getQuestionsController = (req, res) => {
-   
+
     var token = req.headers['authorization'];
     const page = +req.params.page || 1;
     const Quest_Per_Page = 5;
-    const course=req.query.course;
-    const type=req.query.type;
-    const search=req.query.search;
-  
-    let match={};
-    let query={};
-   
-    course.length>0 ?match={course}:match={};
-    type.length>0?query={type}:query={};
+    const course = req.query.course;
+    const type = req.query.type;
+    const search = req.query.search;
+
+    let match = {};
+    let query = {};
+
+    course.length > 0 ? match = { course } : match = {};
+    type.length > 0 ? query = { type } : query = {};
     const skip = (page - 1) * Quest_Per_Page;
     const limit = Quest_Per_Page;
     let totalQuestions;
     try {
         var decoded = jwt.verify(token, 'shhhh');
-        match = {...match, teacher: decoded.teacherid }
+        match = { ...match, teacher: decoded.teacherid }
         console.log(match)
         Questions.find().countDocuments().then(numQues => {
             totalQuestions = numQues;
@@ -221,11 +223,11 @@ exports.getQuestionsController = (req, res) => {
                     ques = ques.filter(function (ques) {
 
                         return ques.test; // return only questions with test matching 'testName: "test1"' query
-                    }).filter(qu=>{
-                        return qu.question.indexOf(search)!=-1
+                    }).filter(qu => {
+                        return qu.question.indexOf(search) != -1
                     })
 
-                    
+
                     totalQuestions = ques.length
                     if (err) return handleError(err);
                     res.send({
@@ -238,7 +240,7 @@ exports.getQuestionsController = (req, res) => {
                         hasPreviousPage: page > 1,
                         lastPage: Math.ceil(totalQuestions / Quest_Per_Page)
                     });
-                }) 
+                })
         })
 
 
@@ -351,147 +353,181 @@ exports.updateQuestionController = (req, res) => {
 
 //GROUP CONTROLLERS
 
-exports.createGroupController=(req,res)=>{
-   //Token received from axios header
-   var token = req.headers.authorization;
+exports.createGroupController = (req, res) => {
+    //Token received from axios header
+    var token = req.headers.authorization;
 
-   var groupName = req.body.groupName;
-   var data = req.body;
+    var groupName = req.body.groupName;
+    var data = req.body;
 
-   try {
-       var decoded = jwt.verify(token, 'shhhh');
-       teach = decoded.teacherid;
-       //Insert teacher Id who has created test in Test table
-       data.teacher = decoded.teacherid;
+    try {
+        var decoded = jwt.verify(token, 'shhhh');
+        teach = decoded.teacherid;
+        //Insert teacher Id who has created test in Test table
+        data.teacher = decoded.teacherid;
 
-       //Create Test if that testName does not already exists
-       Groups.find({ groupName })
-           .then(group => {
-               var cond
-               group.map(grp => {
-                   cond = grp.teacher == teach
-               })
-               if (cond)
-                   return res.status(400).json({ group: 'Group Name alreday exists' });
-               else {
-                   if (groupName == undefined)
-                       res.send("Enter Group name")
-                   else {
+        //Create Test if that testName does not already exists
+        Groups.find({ groupName })
+            .then(group => {
+                var cond
+                group.map(grp => {
+                    cond = grp.teacher == teach
+                })
+                if (cond)
+                    return res.status(400).json({ group: 'Group Name alreday exists' });
+                else {
+                    if (groupName == undefined)
+                        res.send("Enter Group name")
+                    else {
 
-                       const group = new Groups(data);
-                       group.save()
-                           .then(resolve => {
-                               console.log(resolve);
-                               res.send(resolve);
+                        const group = new Groups(data);
+                        group.save()
+                            .then(resolve => {
+                                console.log(resolve);
+                                res.send(resolve);
 
-                           })
-                           .catch((err) => {
-                               res.send('Something went wrong')
-                           })
-                   }
-               }
-           })
-   }
-   catch (err) {
-       console.log(err)
-       res.status(401).send(err)
-   }
+                            })
+                            .catch((err) => {
+                                res.send('Something went wrong')
+                            })
+                    }
+                }
+            })
+    }
+    catch (err) {
+        console.log(err)
+        res.status(401).send(err)
+    }
 }
 
 //Fetching Student list based on their department
-exports.getStudentsByDepartController=(req,res)=>{
-  const token=req.headers.authorization
-  const batch=req.params.batch  
-  try{
-    const decoded = jwt.verify(token, 'shhhh');
-    console.log(batch)
-    const department=decoded.depart
-    const dep= !is_Empty(department)
-    dep?(
-    Students.find({department,batch}).sort('rollNo')
-     .then(student=>{
-           student.map(stud=>{
-   
-         console.log(stud)
-         })
-       return res.send(student)
-      
-     })
-     .catch(err=>{console.log(err)})
-    ): res.send('No students found')
-  }
-  catch(err){
-      console.log(err)
-    return res.status(401).send(err)
-  }
+exports.getStudentsByDepartController = (req, res) => {
+    const token = req.headers.authorization
+    const batch = req.params.batch
+    try {
+        const decoded = jwt.verify(token, 'shhhh');
+        console.log(batch)
+        const department = decoded.depart
+        const dep = !is_Empty(department)
+        dep ? (
+            Students.find({ department, batch }).sort('rollNo')
+                .then(student => {
+                    student.map(stud => {
+
+                        console.log(stud)
+                    })
+                    return res.send(student)
+
+                })
+                .catch(err => { console.log(err) })
+        ) : res.send('No students found')
+    }
+    catch (err) {
+        console.log(err)
+        return res.status(401).send(err)
+    }
 }
 
 //Fetching Groups List
-exports.getGroupListController=(req,res)=>{
-    let token=req.headers['authorization']
-    try{
-        let decoded=jwt.verify(token,'shhhh')
-        let query={teacher:decoded.teacherid}
+exports.getGroupListController = (req, res) => {
+    let token = req.headers['authorization']
+    try {
+        let decoded = jwt.verify(token, 'shhhh')
+        let query = { teacher: decoded.teacherid }
         const page = +req.params.page || 1;
-        const Group_Per_Page=5;
+        const Group_Per_Page = 5;
         let totalGroups;
-        Groups.find(query).countDocuments().then(numGroup=>{
-            totalGroups=numGroup
-        return Groups.find(query)
-        .skip((page-1)*Group_Per_Page)
-        .limit(Group_Per_Page)
-        .then(group=>{
-            res.send({
-                group,
-                currentPage: page,
-                group_per_page: Group_Per_Page,
-                hasNextPage: page * Group_Per_Page < totalGroups,
-                nextPage: page + 1,
-                previousPage: page - 1,
-                hasPreviousPage: page > 1,
-                lastPage: Math.ceil(totalGroups / Group_Per_Page)
-            })
+        Groups.find(query).countDocuments().then(numGroup => {
+            totalGroups = numGroup
+            return Groups.find(query)
+                .skip((page - 1) * Group_Per_Page)
+                .limit(Group_Per_Page)
+                .then(group => {
+                    res.send({
+                        group,
+                        currentPage: page,
+                        group_per_page: Group_Per_Page,
+                        hasNextPage: page * Group_Per_Page < totalGroups,
+                        nextPage: page + 1,
+                        previousPage: page - 1,
+                        hasPreviousPage: page > 1,
+                        lastPage: Math.ceil(totalGroups / Group_Per_Page)
+                    })
+                })
+
+
         })
-
-
-    })
-}
+    }
     catch (err) {
         res.status(401).send(err);
     }
-    }
+}
 
-    exports.addStudentsController=(req,res)=>{
-        const token=req.headers['authorization'];
-        const arr=req.body
-       
-        console.log(arr)
-        try{
-          const decoded=jwt.verify(token,'shhhh')
-      arr.map(obj=>{
-         StudentsInGroup.find({studentId:obj.studentId,groupId:obj.groupId})
-          .then(result=>{
-              console.log(result.length===0)
-               if(result.length===0){
-                const studentInGroup = new StudentsInGroup(obj);
-                studentInGroup.save()
-                .then((docs)=>{
-                    console.log('notfound->'+docs)
-                })
-               }
-               else{
-                   console.log('found->'+result)
-               }
-          }   
-        )
-          })
-          return res.send()
-        
-     
-          
-        }
-        catch(err){
+exports.addStudentsController = (req, res) => {
+    const token = req.headers['authorization'];
+    const arr = req.body
 
-        }
+    console.log(arr)
+    try {
+        const decoded = jwt.verify(token, 'shhhh')
+        arr.map(obj => {
+            StudentsInGroup.find({ studentId: obj.studentId, groupId: obj.groupId })
+                .then(result => {
+                    console.log(result.length === 0)
+                    if (result.length === 0) {
+                        const studentInGroup = new StudentsInGroup(obj);
+                        studentInGroup.save()
+                            .then((docs) => {
+                                console.log('notfound->' + docs)
+                            })
+                    }
+                    else {
+                        console.log('found->' + result)
+                    }
+                }
+                )
+        })
+        return res.send()
+
+
+
     }
-  
+    catch (err) {
+
+    }
+}
+
+exports.assignTestController = (req, res) => {
+    const token = req.headers['authorization'];
+    const arr = req.body
+
+    console.log(arr)
+    try {
+        const decoded = jwt.verify(token, 'shhhh')
+        arr.map(obj => {
+            GroupsAssignedTests.find({ testId: obj.testId, groupId: obj.groupId })
+                .then(result => {
+                    console.log(result.length === 0)
+                    if (result.length === 0) {
+                        const groupAssignTest = new GroupsAssignedTests(obj);
+                        groupAssignTest.save()
+                            .then((docs) => {
+                                console.log('notfound->' + docs)
+                            })
+                    }
+                    else {
+                        console.log('found->' + result)
+                    }
+                }
+                )
+        })
+        return res.send()
+
+
+
+    }
+    catch (err) {
+
+    }
+}
+
