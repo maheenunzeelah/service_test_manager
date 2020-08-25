@@ -1,7 +1,9 @@
 const express=require('express');
 const router=express.Router();
 // var jwt=require('jsonwebtoken');
-const auth=require('../controllers/student')
+const student=require('../controllers/student');
+
+router.get('/groupTest/:id',student.groupTestController)
 
 // router.get('/tests/:page', teacher.getTestController)
 // try{
