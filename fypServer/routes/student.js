@@ -4,7 +4,7 @@ const router=express.Router();
 const student=require('../controllers/student');
 
 router.get('/groupTest/:id',student.groupTestController)
-
+router.get('/test/:id',student.studentTestController)
 // router.get('/tests/:page', teacher.getTestController)
 // try{
       
