@@ -22,22 +22,6 @@ exports.groupTestController=(req,res)=>{
              return tests(group)
            
          })
-        function tests(group){
-            
-             const values=group.map(grp=>grp.groupId._id)
-            const query={
-                'groupId':{$in:values}
-            }
-            
-             GroupsAssignedTests.find(query)
-             .populate('testId groupId','testName groupName')
-             .exec()
-             .then(test=>{
-               return res.send(test)
-             }
-             )
-        
-        }
         
     }
     catch(err){
@@ -49,17 +33,52 @@ exports.studentTestController=(req,res)=>{
     const id=req.params.id
     try{
         const decoded=jwt.verify(token,'shhhh')
-        GroupsAssignedTests.find({studentId:id})
-        .select('-studentId -_id')
-        .populate('testId',' testName -_id')
-         .exec()
-         .then(test=>{
-             console.log(test)
-             return res.send(test)
-         })
+       StudentsInGroup.find({studentId:id})
+        .distinct('groupId')
+        .then(grp=>{
+            return tests(grp)
+        }
+
+        )
+        
          .catch(err=>{
             return res.send('Something went wrong')
          })
+         
+        function tests(group){
+            
+
+           const query={
+               'groupId':{$in:group}
+           }
+           
+            GroupsAssignedTests.find(query)
+            .select('-_id')
+            .populate('testId groupId','testName groupName')
+            .exec()
+            .then(test=>{
+                let arr=[]
+                test.map(tes=>{
+                    var arr2=arr.filter((v,i)=>{
+
+                        console.log(v,v.groupId.groupName,tes.groupId.groupName)
+                      return  v.groupId.groupName===tes.groupId.groupName
+                    })
+                    if(arr2.length){
+                       var arr2Index=arr.indexOf(arr2[0])
+                    //    console.log(arr2)
+                    }
+                    else{
+                        arr.push(tes)
+                    }
+                })
+                console.log(arr)
+                
+            //  return res.send(test)
+            }
+            )
+       
+       }
     }
     catch(err){
         return res.status(401).send(err);
