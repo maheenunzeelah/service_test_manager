@@ -59,22 +59,30 @@ exports.studentTestController=(req,res)=>{
             .then(test=>{
                 let arr=[]
                 test.map(tes=>{
+                    
                     var arr2=arr.filter((v,i)=>{
-
-                        console.log(v,v.groupId.groupName,tes.groupId.groupName)
-                      return  v.groupId.groupName===tes.groupId.groupName
+                       
+                      return  tes.groupId.groupName==v.groupId.groupName
                     })
                     if(arr2.length){
                        var arr2Index=arr.indexOf(arr2[0])
-                    //    console.log(arr2)
+                    //    output[existingIndex].value = output[existingIndex].value.concat(item.value);
+                 
+                    //    arr[arr2Index].testId=arr[arr2Index].testId.testName.concat(tes.testId.testName)
+                       arr[arr2Index].testId=arr[arr2Index].testId.concat(tes.testId)
+                    //   console.log(arr2)
+                    //   console.log(arr)
                     }
-                    else{
-                        arr.push(tes)
-                    }
+                    else {
+                       
+                        if (typeof tes.testId == 'object')
+                          tes.testId = [tes.testId];
+                        arr.push(tes);
+                      }
                 })
                 console.log(arr)
                 
-            //  return res.send(test)
+         return res.send(arr)
             }
             )
        
