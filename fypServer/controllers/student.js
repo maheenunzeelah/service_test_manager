@@ -92,3 +92,19 @@ exports.studentTestController=(req,res)=>{
         return res.status(401).send(err);
     }
 }
+exports.fetchQuestionsController=(req,res)=>{
+    const token=req.headers['authorization']
+    const testId=req.params.testId
+    try{
+        const decoded=jwt.verify(token,'shhhh')
+        Questions.find({test:testId})
+        .then(ques=>{
+            console.log(ques)
+            return res.send(ques)
+        }
+        )
+    }
+    catch(err){
+
+    }
+}
