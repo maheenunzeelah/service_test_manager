@@ -8,12 +8,14 @@ const Students = require("../models/Students");
 const is_Empty = require('../is_Empty');
 let _ = require('lodash')
 const mongoose = require('mongoose');
+const keys=require('../config/keys')
+
 //groupTest
 exports.groupTestController=(req,res)=>{
     const token=req.headers["authorization"];
     const id=req.params.id
     try{
-        const decoded=jwt.verify(token,'shhhh')
+        const decoded=jwt.verify(token,keys.secret)
         const group=StudentsInGroup.find({studentId:id})
         .select('-studentId -_id')
         .populate('groupId',' groupName ')
@@ -32,7 +34,7 @@ exports.studentTestController=(req,res)=>{
     const token=req.headers["authorization"];
     const id=req.params.id
     try{
-        const decoded=jwt.verify(token,'shhhh')
+        const decoded=jwt.verify(token,keys.secret)
        StudentsInGroup.find({studentId:id})
         .distinct('groupId')
         .then(grp=>{
@@ -96,7 +98,7 @@ exports.fetchQuestionsController=(req,res)=>{
     const token=req.headers['authorization']
     const testId=req.params.testId
     try{
-        const decoded=jwt.verify(token,'shhhh')
+        const decoded=jwt.verify(token,keys.secret)
         Questions.find({test:testId})
         .then(ques=>{
             console.log(ques)

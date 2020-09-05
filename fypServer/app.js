@@ -1,7 +1,7 @@
 const express = require('express');
 const app=express();
 const mongoose=require('mongoose');
-const config=require('./config');
+const config=require('./config/keys');
 const authRoutes=require('./routes/auth')
 const bodyParser = require('body-parser');
 const path=require('path')
@@ -35,5 +35,7 @@ app.use(function (req, res, next) {
 app.use(authRoutes);
 
 app.use('**', (req, res) => { res.status('404').send('<h1>PageNotFound</h1>') });
-
+if(process.env.NODE_ENV=="production"){
+    app.get('https://dashboard.heroku.com/apps/e-catechism')
+}
 app.listen(config.serverport, () => { console.log('Running') });

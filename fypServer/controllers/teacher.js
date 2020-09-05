@@ -7,6 +7,8 @@ const GroupsAssignedTests=require("../models/Groups_Assigned_Test")
 const Students = require("../models/Students");
 const is_Empty = require('../is_Empty')
 let _ = require('lodash')
+const keys=require('../config/keys')
+
 exports.postTestController = (req, res) => {
     //Token received from axios header
     var token = req.headers.authorization;
@@ -15,7 +17,7 @@ exports.postTestController = (req, res) => {
     var data = req.body;
 
     try {
-        var decoded = jwt.verify(token, 'shhhh');
+        var decoded = jwt.verify(token, keys.secret);
         teach = decoded.teacherid;
         //Insert teacher Id who has created test in Test table
         data.teacher = decoded.teacherid;
@@ -57,7 +59,7 @@ exports.postTestController = (req, res) => {
 exports.getTestController = (req, res) => {
     var token = req.headers['authorization'];
     try {
-        var decoded = jwt.verify(token, 'shhhh');
+        var decoded = jwt.verify(token, keys.secret);
         const course = req.query.course;
         var query = { teacher: decoded.teacherid };
         course.length > 0 ? query = { ...query, course } : query = { ...query }
@@ -96,7 +98,7 @@ exports.updateTestController = (req, res) => {
     console.log(id, data)
     var token = req.headers['authorization'];
     try {
-        var decoded = jwt.verify(token, 'shhhh');
+        var decoded = jwt.verify(token, keys.secret);
         var teach = decoded.teacherid;
         var query = { testName: data.testName };
         //CHECK IF UPDATED TEST NAME ALREADY EXISTS
@@ -137,7 +139,7 @@ exports.deleteTestController = (req, res) => {
     var token = req.headers['authorization'];
     var id = req.params.id;
     try {
-        var decoded = jwt.verify(token, 'shhhh');
+        var decoded = jwt.verify(token, keys.secret);
         console.log(decoded)
         Tests.remove({ _id: id })
             .then(resolve => {
@@ -170,7 +172,7 @@ exports.getQuestionsByTestController = (req, res) => {
     const test = req.params.test
     test.length > 0 ? match = { test } : match = {}
     try {
-        var decoded = jwt.verify(token, 'shhhh');
+        var decoded = jwt.verify(token, keys.secret);
         match = { ...match, teacher: decoded.teacherid }
         console.log(match)
         Questions.find().populate({
@@ -207,7 +209,7 @@ exports.getQuestionsController = (req, res) => {
     const limit = Quest_Per_Page;
     let totalQuestions;
     try {
-        var decoded = jwt.verify(token, 'shhhh');
+        var decoded = jwt.verify(token, keys.secret);
         match = { ...match, teacher: decoded.teacherid }
         console.log(match)
         Questions.find().countDocuments().then(numQues => {
@@ -256,7 +258,7 @@ exports.postQuestionController = (req, res) => {
     var data = req.body;
     console.log(data)
     try {
-        var decoded = jwt.verify(token, 'shhhh');
+        var decoded = jwt.verify(token, keys.secret);
         console.log(decoded);
         Questions.findOne({ question })
             .then(quest => {
@@ -296,7 +298,7 @@ exports.deleteQuestionController = (req, res) => {
     var id = req.params.id;
     console.log(id)
     try {
-        var decoded = jwt.verify(token, 'shhhh');
+        var decoded = jwt.verify(token, keys.secret);
         Questions.remove({ _id: id })
             .then(resolve => {
                 console.log("Delete Succesfully: ", resolve);
@@ -314,7 +316,7 @@ exports.updateQuestionController = (req, res) => {
     console.log(id, data)
     var token = req.headers['authorization'];
     try {
-        var decoded = jwt.verify(token, 'shhhh');
+        var decoded = jwt.verify(token, keys.secret);
         var test = data.test;
         var query = { question: data.question };
         //CHECK IF UPDATED TEST NAME ALREADY EXISTS
@@ -361,7 +363,7 @@ exports.createGroupController = (req, res) => {
     var data = req.body;
 
     try {
-        var decoded = jwt.verify(token, 'shhhh');
+        var decoded = jwt.verify(token, keys.secret);
         teach = decoded.teacherid;
         //Insert teacher Id who has created test in Test table
         data.teacher = decoded.teacherid;
@@ -405,7 +407,7 @@ exports.getStudentsByDepartController = (req, res) => {
     const token = req.headers.authorization
     const batch = req.params.batch
     try {
-        const decoded = jwt.verify(token, 'shhhh');
+        const decoded = jwt.verify(token, keys.secret);
         console.log(batch)
         const department = decoded.depart
         const dep = !is_Empty(department)
@@ -432,7 +434,7 @@ exports.getStudentsByDepartController = (req, res) => {
 exports.getGroupListController = (req, res) => {
     let token = req.headers['authorization']
     try {
-        let decoded = jwt.verify(token, 'shhhh')
+        let decoded = jwt.verify(token,keys.secret)
         let query = { teacher: decoded.teacherid }
         const page = +req.params.page || 1;
         const Group_Per_Page = 5;
@@ -469,7 +471,7 @@ exports.addStudentsController = (req, res) => {
 
     console.log(arr)
     try {
-        const decoded = jwt.verify(token, 'shhhh')
+        const decoded = jwt.verify(token, keys.secret)
         arr.map(obj => {
             StudentsInGroup.find({ studentId: obj.studentId, groupId: obj.groupId })
                 .then(result => {
@@ -503,7 +505,7 @@ exports.assignTestController = (req, res) => {
 
     console.log(arr)
     try {
-        const decoded = jwt.verify(token, 'shhhh')
+        const decoded = jwt.verify(token, keys.secret)
         arr.map(obj => {
             GroupsAssignedTests.find({ testId: obj.testId, groupId: obj.groupId })
                 .then(result => {

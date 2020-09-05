@@ -10,6 +10,7 @@ var amqp = require('amqplib/callback_api');
 const minio = require('minio');
 const fs = require('fs');
 const path = require('path');
+const keys=require('../config/keys')
 const { spawn } = require('child_process');
 
 var minioClient = new minio.Client({
@@ -34,7 +35,7 @@ exports.teacherLoginController = (req, res) => {
         bcrypt.compare(password, teacher.password)
             .then(isMatch => {
                 if (isMatch) {
-                    var token = jwt.sign({ teacherid: teacher._id ,depart:teacher.department}, "shhhh");
+                    var token = jwt.sign({ teacherid: teacher._id ,depart:teacher.department}, keys.secret);
                     console.log(token);
                     res.json({token});
                 }
@@ -63,7 +64,7 @@ exports.teacherSignupController = (req, res) => {
                         teacher.password = hash;
                         teacher.save()
                             .then(teacher => {
-                                var token = jwt.sign({ teacherid: teacher._id,depart:teacher.department }, "shhhh");
+                                var token = jwt.sign({ teacherid: teacher._id,depart:teacher.department }, keys.secret);
                                 console.log(token);
                                 return res.json({token});
                             })
@@ -108,7 +109,7 @@ exports.studentSignupController = (req, res, next) => {
                         student.password = hash;
                         student.save()
                             .then(student => {
-                                var token = jwt.sign({ studentid: student._id }, "shhhh");
+                                var token = jwt.sign({ studentid: student._id }, keys.secret);
                                 console.log(token);
                                 return res.json({ token, id: student._id });
                             })
@@ -239,7 +240,7 @@ exports.studentLoginController = (req, res) => {
         bcrypt.compare(password, stud.password)
             .then(isMatch => {
                 if (isMatch) {
-                    var token = jwt.sign({ studentid: stud._id }, "shhhh");
+                    var token = jwt.sign({ studentid: stud._id },keys.secret);
                     console.log(token);
                     return res.json({ id: stud._id ,token});
                 }
@@ -279,18 +280,18 @@ exports.studentLoginVoiceController = (req, res) => {
         })
         stream.on('error', function (err) { console.log(err) })
     })
-    var dataToSend
-    const python = spawn('python', ['test_performance.py']);
-    python.stdout.on('data', function (data) {
-        console.log('Pipe data from python script ...');
-         dataToSend = data.toString();
-    });
-    python.on('close', (code) => {
-        console.log(`child process close all stdio with code ${code}`);
-        // send data to browser
-        console.log(dataToSend)
-        fs.truncate("loginVoices.txt",0,function(){console.log('')})
-    });
+    // var dataToSend
+    // const python = spawn('python', ['test_performance.py']);
+    // python.stdout.on('data', function (data) {
+    //     console.log('Pipe data from python script ...');
+    //      dataToSend = data.toString();
+    // });
+    // python.on('close', (code) => {
+    //     console.log(`child process close all stdio with code ${code}`);
+    //     // send data to browser
+    //     console.log(dataToSend)
+    //     fs.truncate("loginVoices.txt",0,function(){console.log('')})
+    // });
     res.send("login")
 
     // minioClient.bucketExists(bucketName, function (err, exists) {
