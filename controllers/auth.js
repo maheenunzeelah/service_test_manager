@@ -280,41 +280,42 @@ exports.studentLoginVoiceController = (req, res) => {
         })
         stream.on('error', function (err) { console.log(err) })
     })
-    // var dataToSend
-    // const python = spawn('python', ['test_performance.py']);
-    // python.stdout.on('data', function (data) {
-    //     console.log('Pipe data from python script ...');
-    //      dataToSend = data.toString();
-    // });
-    // python.on('close', (code) => {
-    //     console.log(`child process close all stdio with code ${code}`);
-    //     // send data to browser
-    //     console.log(dataToSend)
-    //     fs.truncate("loginVoices.txt",0,function(){console.log('')})
-    // });
+ var dataToSend
+    const python = spawn('python', ['test_performance.py']);
+    python.stdout.on('data', function (data) {
+        console.log('Pipe data from python script ...');
+         dataToSend = data.toString();
+    });
+    python.on('close', (code) => {
+        console.log(`child process close all stdio with code ${code}`);
+        // send data to browser
+        console.log(dataToSend)
+        fs.truncate("loginVoices.txt",0,function(){console.log('')})
+    });
+    console.log('login')
     res.send("login")
 
-    // minioClient.bucketExists(bucketName, function (err, exists) {
-    //     if (err) {
-    //         return console.log("erere", err)
-    //     }
-    //     if (!exists) {
-    //         //Make a bucket called europetrip.
-    //         minioClient.makeBucket(bucketName, function (err) {
-    //             if (err) return console.log(err)
+    minioClient.bucketExists(bucketName, function (err, exists) {
+        if (err) {
+            return console.log("erere", err)
+        }
+        if (!exists) {
+            //Make a bucket called europetrip.
+            minioClient.makeBucket(bucketName, function (err) {
+                if (err) return console.log(err)
 
-    //             console.log('Bucket created successfully ')
-    //         })
-    //     }
-    //    files.map(file=>{
-    //     minioClient.fPutObject(bucketName, file.filename, file.path, function (err, etag) {
-    //         if (err) return console.log(err)
+                console.log('Bucket created successfully ')
+            })
+        }
+       files.map(file=>{
+        minioClient.fPutObject(bucketName, file.filename, file.path, function (err, etag) {
+            if (err) return console.log(err)
 
-    //     });
+        });
 
-    // })
+    })
 
-    // })
-    // console.log('Files uploaded successfully.')
-    // res.send('Student Registered')
+    })
+    console.log('Files uploaded successfully.')
+    res.send('Student Registered')
 }
