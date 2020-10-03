@@ -5,6 +5,7 @@ const Groups = require("../models/Groups");
 const StudentsInGroup = require("../models/Students_In_Group");
 const GroupsAssignedTests=require("../models/Groups_Assigned_Test")
 const Students = require("../models/Students");
+const Results=require('../models/Results')
 const is_Empty = require('../is_Empty');
 let _ = require('lodash')
 const mongoose = require('mongoose');
@@ -38,7 +39,7 @@ exports.studentTestController=(req,res)=>{
        StudentsInGroup.find({studentId:id})
         .distinct('groupId')
         .then(grp=>{
-            return tests(grp)
+            return tests(grp) 
         }
 
         )
@@ -105,6 +106,35 @@ exports.fetchQuestionsController=(req,res)=>{
             return res.send(ques)
         }
         )
+    }
+    catch(err){
+
+    }
+}
+function formatAMPM(date) {
+    let month = (date.getMonth() + 1).toString();
+    let dat = (date.getDate()).toString();
+    let year = (date.getFullYear()).toString();
+    let hour = (date.getHours()).toString();
+    var hours = date.getHours();
+    var minutes = date.getMinutes();
+    var ampm = hours >= 12 ? 'pm' : 'am';
+    hours = hours % 12;
+    hours = hours ? hours : 12; // the hour '0' should be '12'
+    minutes = minutes < 10 ? '0' + minutes : minutes;
+    var strTime = month + '/' + dat + '/' + year + '  ' + hours + ':' + minutes + ' ' + ampm;
+    return strTime;
+}
+exports.postResultsController=(req,res)=>{
+  
+    const token=req.headers['authorization']
+   const data=req.body
+    try{
+        const decoded=jwt.verify(token,keys.secret)
+        console.log(decoded)
+        console.log(req.body)
+        d = formatAMPM(new Date);
+        data = { ...data, created_at: d }
     }
     catch(err){
 

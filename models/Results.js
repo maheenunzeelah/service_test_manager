@@ -3,8 +3,10 @@ const Schema = mongoose.Schema;
 
 const resultSchema = new mongoose.Schema({
 score:Number,    
-studentID:{ type: Schema.Types.ObjectId, ref: 'Students' },
-testID:{ type: Schema.Types.ObjectId, ref: 'Tests' }
+perct:Number,
+created_at: {type: String},
+studentid:{ type: Schema.Types.ObjectId, ref: 'Students' },
+test:{ type: Schema.Types.ObjectId, ref: 'Tests' }
 });
     
 var Results= mongoose.model("Results", resultSchema);

@@ -5,6 +5,7 @@ const student=require('../controllers/student');
 
 router.get('/groupTest/:id',student.studentTestController)
 router.get('/test/:testId',student.fetchQuestionsController)
+router.post('/result',student.postResultsController)
 // router.get('/tests/:page', teacher.getTestController)
 // try{
       
