@@ -319,3 +319,37 @@ exports.studentLoginVoiceController = (req, res) => {
     console.log('Files uploaded successfully.')
     res.send('Student Registered')
 }
+exports.saveFaceController=(req,res)=>{
+    let dataToSend
+    const python = spawn('python', ['Facial_Recognition_Part1.py']);
+    python.stdout.on('data', function (data) {
+        console.log('Pipe data from python script ...');
+         dataToSend = data.toString();
+         res.json({face:'done'})
+    });
+    python.on('close', (code) => {
+        console.log(`child process close all stdio with code ${code}`);
+        // send data to browser
+        console.log(dataToSend)
+       
+    });
+}
+
+exports.studentLoginFaceController=(req,res)=>{
+    let dataToSend
+    console.log('hey')
+    const python = spawn('python', ['Facial_Recognition_Part2.py']);
+    python.stdout.on('data', function (data) {
+        console.log('Pipe data from python script ...');
+          dataToSend = data.toString();
+         
+    });
+    python.on('close', (code) => {
+        console.log(`child process close all stdio with code ${code}`);
+        // send data to browser
+        console.log(dataToSend)
+      
+    });
+    res.json({face:'done'})
+
+}

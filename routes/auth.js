@@ -59,6 +59,8 @@ router.post("/signup", auth.teacherSignupController);
 router.post("/signup/student", auth.studentSignupController);
 router.post("/signup/studentVoice", upload.array('data', 5), auth.saveVoiceController);
 router.post("/login/student", auth.studentLoginController);
+router.post("/login/studentFace", auth.studentLoginFaceController);
+router.post('/signup/studentFace',auth.saveFaceController)
 router.post("/login/studentVoiceAuth", loginUploads.array('data', 2), auth.studentLoginVoiceController);
 
 module.exports = router;
