@@ -538,15 +538,17 @@ exports.assignTestController = (req, res) => {
                         groupAssignTest.save()
                             .then((docs) => {
                                 console.log('notfound->' + docs)
+                                return res.json({id:docs._id})
                             })
                     }
                     else {
                         console.log('found->' + result)
+                        return res.status(400).json({resu:"Already assigned"})
                     }
                 }
                 )
         })
-        return res.send()
+       
 
 
 
