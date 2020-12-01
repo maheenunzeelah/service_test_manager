@@ -40,6 +40,10 @@ router.delete('/delQues/:id', teacher.deleteQuestionController)
 
 //POST API FOR CREATING GROUPS
 router.post('/createGroup',teacher.createGroupController)
+//PUT API FOR GOUPNAME UPDATE
+router.put('/updateGroup/:id',teacher.updateGroupController)
+// DELETING QUESTIONS FROM CREATED TEST API
+router.delete('/delGroup/:id', teacher.deleteGroupController)
 
 //FETCHING STUDENTS
 router.get('/fetchStudents/:batch',teacher.getStudentsByDepartController)
@@ -52,5 +56,9 @@ router.post('/addStudents',teacher.addStudentsController)
 
 //ASSIGN TEST
 router.post('/assignTests',teacher.assignTestController)
+//save Settings
+router.post('/saveSettings',teacher.saveSettingsController)
 
+//get Settings
+router.get('/getSettings/:id',teacher.getSettings)
 module.exports = router;

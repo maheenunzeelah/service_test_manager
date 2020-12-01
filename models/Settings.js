@@ -1,4 +1,3 @@
-import { model } from 'mongoose';
 
 const mongoose=require('mongoose');
 const Schema=mongoose.Schema;
@@ -8,7 +7,9 @@ const settingsSchema=new Schema({
     timeLimit:Number,
     introduction:String,
     available: Boolean,
-    attempts:Number
+    attempts:String,
+    guid:Boolean,
+    random:Boolean
 })
 
 module.exports=mongoose.model("Settings",settingsSchema);

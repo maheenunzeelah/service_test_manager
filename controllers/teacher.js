@@ -5,7 +5,8 @@ const Groups = require("../models/Groups");
 const StudentsInGroup = require("../models/Students_In_Group");
 const GroupsAssignedTests = require("../models/Groups_Assigned_Test")
 const Students = require("../models/Students");
-const is_Empty = require('../is_Empty')
+const is_Empty = require('../is_Empty');
+const Settings = require('../models/Settings');
 let _ = require('lodash');
 var async = require('async');
 const keys = require('../config/keys')
@@ -63,48 +64,48 @@ exports.getTestController = (req, res) => {
         var decoded = jwt.verify(token, keys.secret);
         const course = req.query.course;
         var query = { teacher: decoded.teacherid };
-        course.length > 0 ? query = { ...query, course } : query = { ...query }
+        course.length > 0 ? query = { ...query, course } : query
         const page = +req.params.page || 1;
         const Test_Per_Page = 5;
         let totalTests;
-        var groups=[]
+        var groups = []
         Tests.find(query).countDocuments().then(numTest => {
             totalTests = numTest
             return Tests.find(query)
                 .skip((page - 1) * Test_Per_Page)
                 .limit(Test_Per_Page)
-                .then(function(test){
+                .then(function (test) {
                     // console.log(`testtttt${test}`)
-                   async.forEachOf(test, function iterator(tes,i,callback){
-                    return GroupsAssignedTests.find({ testId: tes._id })
-                    .select('-_id -__v -testId')
-                    .populate('groupId', 'groupName')
-                    .exec()
-                    .then(grp => {
-                     
-                       groups.push({ ...tes._doc, grp })
-                         callback();
+                    async.forEachOf(test, function iterator(tes, i, callback) {
+                        return GroupsAssignedTests.find({ testId: tes._id })
+                            .select('-_id -__v -testId')
+                            .populate('groupId', 'groupName')
+                            .exec()
+                            .then(grp => {
+
+                                groups.push({ ...tes._doc, grp })
+                                callback();
+                            })
+                    }, function (err) {
+                        if (err) console.error(err)
+                        console.log(groups)
+                        res.send({
+                            test,
+                            groups,
+                            currentPage: page,
+                            ques_per_page: Test_Per_Page,
+                            hasNextPage: page * Test_Per_Page < totalTests,
+                            nextPage: page + 1,
+                            previousPage: page - 1,
+                            hasPreviousPage: page > 1,
+                            lastPage: Math.ceil(totalTests / Test_Per_Page)
+                        })
                     })
-                   },function(err){
-                       if(err) console.error(err)
-                       console.log(groups)
-                       res.send({
-                        test,
-                        groups,
-                        currentPage: page,
-                        ques_per_page: Test_Per_Page,
-                        hasNextPage: page * Test_Per_Page < totalTests,
-                        nextPage: page + 1,
-                        previousPage: page - 1,
-                        hasPreviousPage: page > 1,
-                        lastPage: Math.ceil(totalTests / Test_Per_Page)
-                    })
-                   })
-                           
-                        
-                    
-                    
-   })
+
+
+
+
+                })
 
 
         })
@@ -424,7 +425,73 @@ exports.createGroupController = (req, res) => {
         res.status(401).send(err)
     }
 }
+exports.updateGroupController = (req, res) => {
+    var id = req.params.id;
+    var data = req.body;
+    var token = req.headers['authorization'];
+    try {
+        var decoded = jwt.verify(token, keys.secret);
+        var teach = decoded.teacherid;
+        var query = { groupName: data.groupName };
+        //CHECK IF UPDATED TEST NAME ALREADY EXISTS
+        Groups.find(query)
+            .then(group => {
+                console.log(group)
+                var cond
+                group.map(grp => {
 
+                    cond = grp.teacher == teach
+                    console.log(cond)
+                })
+                if (cond)
+                    return res.status(400).json({ group: 'Group Name already exists' });
+                //IF TEST NAME DOES NOT EXIST THEN CHANGE NAME    
+                else {
+                    Groups.updateOne({ _id: id }, data, (error, response) => {
+                        if (error) {
+                            console.log("Err: ", error);
+                            res.send(error);
+                            return;
+                        }
+                        console.log(response)
+                        res.send("Group Updated");
+
+                    })
+                }
+            }
+            )
+    }
+    catch (err) {
+        res.status(401).send(err);
+    }
+
+}
+//Delete Groups
+
+exports.deleteGroupController = (req, res) => {
+    var token = req.headers['authorization'];
+    var id = req.params.id;
+    try {
+        var decoded = jwt.verify(token, keys.secret);
+        console.log(decoded)
+        Groups.findByIdAndRemove(id)
+            .then(resolve => {
+                console.log("Delete Succesfully: ", resolve);
+                res.send("Group Deleted");
+            });
+        GroupsAssignedTests.remove({ groupId: id })
+            .then(resolve => {
+                console.log("Delete Succesfully: ", resolve);
+            })
+        StudentsInGroup.remove({ groupId: id })
+            .then(resolve => {
+                console.log("Delete Succesfully: ", resolve);
+            })
+    }
+    catch (err) {
+        res.status(401).send(err);
+    }
+}
 //Fetching Student list based on their department
 exports.getStudentsByDepartController = (req, res) => {
     const token = req.headers.authorization
@@ -537,24 +604,107 @@ exports.assignTestController = (req, res) => {
                         const groupAssignTest = new GroupsAssignedTests(obj);
                         groupAssignTest.save()
                             .then((docs) => {
-                                console.log('notfound->' + docs)
-                                return res.json({id:docs._id})
+                                console.log('notfound->' + docs._id)
+                                return res.json({ id: docs._id })
+                            })
+                            .catch(err => {
+                                return res.json({ error: err })
                             })
                     }
                     else {
                         console.log('found->' + result)
-                        return res.status(400).json({resu:"Already assigned"})
+                        return res.json({ resu: "Already assigned", id: result[0]._id })
                     }
                 }
                 )
         })
-       
+
 
 
 
     }
     catch (err) {
+        return res.json({ error: err })
+    }
+}
 
+exports.saveSettingsController = (req, res) => {
+    const token = req.headers['authorization'];
+    const body = req.body;
+    const id = req.body.groupAssignedTestId
+    console.log(body)
+    try {
+        const decoded = jwt.verify(token, keys.secret)
+        Settings.find(body)
+            .then(result => {
+                console.log(result)
+                if (result.length > 0) {
+                    // Settings.findOneAndUpdate({groupAssignedTestId:id},body)
+                    return res.json({ message: 'Already saved' })
+                }
+
+                else {
+                    Settings.find({ groupAssignedTestId: id })
+                        .then((result) => {
+                            if (result.length > 0) {
+                                Settings.updateOne({ groupAssignedTestId: id }, body, (error, response) => {
+                                    if (error) {
+                                        console.log("Err: ", error);
+                                        res.send(error);
+                                        return;
+                                    }
+                                    console.log(response)
+                                    return res.json({ message: 'Settings updated' })
+
+                                })
+                            }
+
+                            else {
+                                const settings = new Settings(body)
+                                settings.save()
+                                    .then(doc => {
+                                        return res.json({ message: 'Settings saved' })
+                                    })
+                            }
+                        })
+
+
+                }
+            })
+    }
+    catch (err) {
+        return res.json({ error: err })
+    }
+}
+
+exports.getSettings = (req, res) => {
+    const token = req.headers['authorization'];
+    const id = req.params.id
+    
+    try {
+        const decoded = jwt.verify(token, keys.secret)
+        GroupsAssignedTests.findById(id)
+            .then(result => {
+            console.log(result)
+                let id=result._id
+                let test=result.testId
+                Settings.find({groupAssignedTestId:id})
+                 .then(result=>{
+                     console.log(result)
+                    res.send(result)
+                 })
+                 .catch(err=>{
+                     res.send(err)
+                 })
+               
+            }
+            )
+            .catch(err=>{
+                res.send(err)
+            })
+    }
+    catch (err) {
+        return res.json({ error: err })
     }
 }
 

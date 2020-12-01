@@ -56,7 +56,7 @@ exports.studentTestController=(req,res)=>{
            }
            
             GroupsAssignedTests.find(query)
-            .select('-_id')
+            
             .populate('testId groupId','testName groupName')
             .exec()
             .then(test=>{

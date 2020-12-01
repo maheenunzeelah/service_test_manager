@@ -240,7 +240,7 @@ exports.studentLoginController = (req, res) => {
         bcrypt.compare(password, stud.password)
             .then(isMatch => {
                 if (isMatch) {
-                    var token = jwt.sign({ studentid: stud._id },keys.secret);
+                    var token = jwt.sign({ studentid: stud._id ,studentName:stud.firstName+' '+stud.lastName},keys.secret);
                     console.log(token);
                     return res.json({ id: stud._id ,token});
                 }
